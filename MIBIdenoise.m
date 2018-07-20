@@ -1,4 +1,4 @@
-% remove background for all cores in the study
+% remove noise for all cores in the study
 
 % params
 corePath = {'SampleData/extracted/Point1/'}; % points to denoise. Add several by separating with commas
