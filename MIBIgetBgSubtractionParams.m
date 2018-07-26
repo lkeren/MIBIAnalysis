@@ -12,7 +12,7 @@ cap = 10;
 coreNum = length(corePath);
 
 for i=1:coreNum
-    load([corePath{i},'dataDeNoise.mat']);
+    load([corePath{i},'data.mat']);
     [~,bgChannelInd] = ismember(bgChannel,massDS.Label);
     MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),cap,['Background channel - ',bgChannel]); plotbrowser on;
     mask = MibiGetMask(countsAllSFiltCRSum(:,:,bgChannelInd),cap,t,gausRad);

@@ -229,7 +229,7 @@ saveas(f,[processedDataDir,'/Point',num2str(pointNumber),'/Results/IonGradientLe
 
 
 %% save
-save ([processedDataDir,'/Point',num2str(pointNumber),'/dataDeNoise.mat'],'totalIonFiltSum','countsAllSFiltCRSum','massDS','pointNumber');
+save ([processedDataDir,'/Point',num2str(pointNumber),'/data.mat'],'totalIonFiltSum','countsAllSFiltCRSum','massDS','pointNumber');
 toc
 % save TIFs
 if saveTifs

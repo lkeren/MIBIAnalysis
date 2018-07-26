@@ -12,7 +12,7 @@ coreNum = length(corePath);
 
 for i=1:length(corePath)
     disp(['Working on ' num2str(i)]);
-    load([corePath{i},'dataDeNoise.mat']);
+    load([corePath{i},'data.mat']);
     [~,bgChannelInd] = ismember(bgChannel,massDS.Label);
     mask = MibiGetMask(countsAllSFiltCRSum(:,:,bgChannelInd),cap,t,gausRad);
     countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);

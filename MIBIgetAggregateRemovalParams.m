@@ -3,7 +3,7 @@
 % The script works by gaussian-smoothing the data and then removing connected components below a certain size. 
 
 % parameters
-corePath = {'SampleData/extracted/Point1/','SampleData/extracted/Point1/'}; % path to cores that you want to evaluate for aggregate removal. Specify several paths by separating with commas
+corePath = {'SampleData/extracted/cleanData/Point1/','SampleData/extracted/cleanData/Point2/'}; % path to cores that you want to evaluate for aggregate removal. Specify several paths by separating with commas
 massPath = 'SampleData/SamplePanel.csv'; % path to panel csv
 load_data = 1; % after the first time that you run the script you can change to 0 to save the loading time.
 plotChannel = 'CD4'; % channel that you want to work on.
