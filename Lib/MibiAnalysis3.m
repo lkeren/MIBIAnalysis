@@ -30,8 +30,12 @@ if ~exist('makePlots')
     makePlots=1;
 end
 
-if ~exist('fixRaster')
-    fixRaster=0;
+if ~exist('fixRasterCols')
+    fixRasterCols=0;
+end
+
+if ~exist('fixRasterRows')
+    fixRasterRows=0;
 end
 
 if ~exist('calibrateSpectraPerDepth')
@@ -46,10 +50,6 @@ end
 % parameters for coregistration (if necessary)
 if ~exist('coregister_planes')
     coregister_planes=1;
-end
-
-if ~exist('fixRaster')
-    fixRaster=0;
 end
 
 if ~exist('CRchannel')
@@ -134,9 +134,10 @@ if sumDepths
     totalIonFilt = totalIonFilt(:,:,goodDepths);
     
     % fix raster scanner
-    if fixRaster==1
-        [countsAllSFilt,totalIon,totalIonFilt]= MibiFixRaster(countsAllSFilt,totalIon,totalIonFilt);
+    if fixRasterCols==1 | fixRasterRows==1
+        [countsAllSFilt,totalIon,totalIonFilt]= MibiFixRaster(countsAllSFilt,totalIon,totalIonFilt, fixRasterCols, fixRasterRows);
     end
+  
     
     depthEnd=length(countsAllSFilt);
     if depthProfile
