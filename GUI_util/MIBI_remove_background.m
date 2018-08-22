@@ -1,4 +1,4 @@
-function [] = MIBI_remove_background()
+function [] = MIBI_remove_background(pathToLog)
     % remove background for several cores according to removal params
     global pipeline_data;
     corePath = pipeline_data.corePath;
@@ -11,7 +11,9 @@ function [] = MIBI_remove_background()
 
     for i=1:length(corePath)
         disp(['Working on ' num2str(i), '...']);
-        [countsAllSFiltCRSum, labels] = load_tiff_data(corePath{i});
+        countsAllSFiltCRSum = pipeline_data.rawData(corePath{i}).countsAllSFiltCRSum;
+        labels = pipeline_data.rawData(corePath{i}).labels;
+        
         [~,bgChannelInd] = ismember(bgChannel,labels);
         mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,0,'');
         countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
@@ -19,7 +21,8 @@ function [] = MIBI_remove_background()
         [savePath, ~, ~] = fileparts(corePath{i});
         MibiSaveTifs ([savePath,'/TIFsNoBg/'], countsNoBg, labels)
     end
-    fid = fopen([savePath, '/[', datestr(datetime('now')), ']_background_removal.log'], 'wt');
+    
+    fid = fopen([pathToLog, '/[', datestr(datetime('now')), ']_background_removal.log'], 'wt');
     fprintf(fid, 'background channel: %s\nbackground cap: %f\nevaluation cap: %f\ngaussian radius: %f\nthreshold: %f\nremove value: %f', bgChannel, capBgChannel, capEvalChannel, gausRad, t, removeVal);
     fclose(fid);
     disp("Finished removing background.");

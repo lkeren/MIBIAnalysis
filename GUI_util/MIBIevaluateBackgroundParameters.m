@@ -2,8 +2,9 @@ function [] = MIBIevaluateBackgroundParameters(points)
     global pipeline_data;
     
     for i=1:numel(points)
-        % load([getExtractedDir(points{i}),filesep,'dataDeNoise.mat']);
-        [countsAllSFiltCRSum, labels] = load_tiff_data(points{i});
+        countsAllSFiltCRSum = pipeline_data.rawData(points{i}).countsAllSFiltCRSum;
+        labels = pipeline_data.rawData(points{i}).labels;
+        
         evalChannel = pipeline_data.evalChannel;
         bgChannel = pipeline_data.bgChannel;
         evalChannelInd = pipeline_data.evalChannelInd;
@@ -21,7 +22,7 @@ function [] = MIBIevaluateBackgroundParameters(points)
         point_name = strrep(point_name, '_', '\_');
         
         MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - before']); plotbrowser on;
-        MibiPlotDataAndCap(countsNoBg(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - after']); plotbrowser on;
+        MibiPlotDataAndCap(countsNoBg(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - Params ', pipeline_data.all_param_TITLEstring, ' - after']); plotbrowser on;
     end
 end
 

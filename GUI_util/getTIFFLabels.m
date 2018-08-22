@@ -38,7 +38,8 @@ function [labels] = getTIFFLabels(path)
         end
     else
         % path is to a dark void in your soul
-        error('Path provided is not to a folder or TIFF file');
+        labels = {};
+        warning('Path provided is not to a folder or TIFF file');
     end
 end
 
