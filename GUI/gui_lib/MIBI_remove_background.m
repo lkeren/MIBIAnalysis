@@ -17,12 +17,12 @@ function [] = MIBI_remove_background(pathToLog)
         [~,bgChannelInd] = ismember(bgChannel,labels);
         mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,0,'');
         countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
-        save ([corePath{i},'dataNoBg.mat'],'countsNoBg');
-        [savePath, ~, ~] = fileparts(corePath{i});
-        MibiSaveTifs ([savePath,'/TIFsNoBg/'], countsNoBg, labels)
+        [savePath, name, ~] = fileparts(corePath{i});
+        MibiSaveTifs ([savePath,filesep,name,'_TIFsNoBg',filesep], countsNoBg, labels)
+        save ([savePath,filesep,name,'_dataNoBg.mat'],'countsNoBg');
     end
     
-    fid = fopen([pathToLog, '/[', datestr(datetime('now')), ']_background_removal.log'], 'wt');
+    fid = fopen([pathToLog, filesep, '[', datestr(datetime('now')), ']_background_removal.log'], 'wt');
     fprintf(fid, 'background channel: %s\nbackground cap: %f\nevaluation cap: %f\ngaussian radius: %f\nthreshold: %f\nremove value: %f', bgChannel, capBgChannel, capEvalChannel, gausRad, t, removeVal);
     fclose(fid);
     disp("Finished removing background.");

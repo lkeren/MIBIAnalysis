@@ -69,6 +69,9 @@ handles.output = hObject;
 [path, name, ext] = fileparts(mfilename('fullpath'));
 warning('off', 'MATLAB:hg:uicontrol:StringMustBeNonEmpty');
 warning('off', 'MATLAB:imagesci:tifftagsread:expectedTagDataFormat');
+path = strsplit(path, filesep);
+path(end) = [];
+path = strjoin(path, filesep);
 pipeline_data.defaultPath = path;
 % Update handles structure
 guidata(hObject, handles);
@@ -446,6 +449,7 @@ function test_Callback(hObject, eventdata, handles)
             curList{1} = pipeline_data.background_param_LISTstring;
             set(handles.bkg_rm_settings_listbox, 'String', curList);
         end
+        set(handles.remove_background, 'Enable', 'on');
     catch
         warning('No point selected');
     end
@@ -621,6 +625,7 @@ function evaluate_point_Callback(hObject, eventdata, handles)
             curList{1} = pipeline_data.evaluation_param_LISTstring;
             set(handles.eval_settings_listbox, 'String', curList);
         end
+        set(handles.remove_background, 'Enable', 'on');
     catch
         warning('No point selected');
     end
@@ -630,28 +635,32 @@ function evaluate_all_points_Callback(hObject, eventdata, handles)
 % hObject    handle to evaluate_all_points (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    contents = cellstr(get(handles.eval_channel_menu,'String'));
-    evalPoints = cellstr(get(handles.eval_point_menu,'String'));
-    evalChannelInd = get(handles.eval_channel_menu,'Value');
-    evalChannel = contents{evalChannelInd};
-    
-    handle_background_and_evaluation_params(handles)
-    global pipeline_data;
-    
-    pipeline_data.evalChannel = evalChannel;
-    pipeline_data.evalChannelInd = evalChannelInd;
-    MIBIevaluateBackgroundParameters(evalPoints);
-    
-    curList = get(handles.eval_settings_listbox, 'String');
-    
-    set(handles.bkgrm_params_display, 'String', pipeline_data.all_param_DISPstring);
-    
-    if numel(curList)==0 || ~strcmp(pipeline_data.evaluation_param_LISTstring, curList{1})
-        curList(2:end+1) = curList(1:end);
-        curList{1} = pipeline_data.evaluation_param_LISTstring;
-        set(handles.eval_settings_listbox, 'String', curList);
-    end
+    try
+        contents = cellstr(get(handles.eval_channel_menu,'String'));
+        evalPoints = cellstr(get(handles.eval_point_menu,'String'));
+        evalChannelInd = get(handles.eval_channel_menu,'Value');
+        evalChannel = contents{evalChannelInd};
 
+        handle_background_and_evaluation_params(handles)
+        global pipeline_data;
+
+        pipeline_data.evalChannel = evalChannel;
+        pipeline_data.evalChannelInd = evalChannelInd;
+        MIBIevaluateBackgroundParameters(evalPoints);
+
+        curList = get(handles.eval_settings_listbox, 'String');
+
+        set(handles.bkgrm_params_display, 'String', pipeline_data.all_param_DISPstring);
+
+        if numel(curList)==0 || ~strcmp(pipeline_data.evaluation_param_LISTstring, curList{1})
+            curList(2:end+1) = curList(1:end);
+            curList{1} = pipeline_data.evaluation_param_LISTstring;
+            set(handles.eval_settings_listbox, 'String', curList);
+        end
+        set(handles.remove_background, 'Enable', 'on');
+    catch
+        % do nothing
+    end
 
 % --- Executes on button press in remove_background.
 function remove_background_Callback(hObject, eventdata, handles)
@@ -674,6 +683,7 @@ function load_params_Callback(hObject, eventdata, handles)
     global pipeline_data;
     handle_background_and_evaluation_params(handles);
     set(handles.bkgrm_params_display, 'String', pipeline_data.all_param_DISPstring);
+    set(handles.remove_background, 'Enable', 'on');
     
 
 
