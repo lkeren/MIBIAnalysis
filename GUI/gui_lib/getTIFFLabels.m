@@ -7,11 +7,9 @@ function [labels] = getTIFFLabels(path)
         panel = {info.PageName}';
         [~, idx] = sort(upper(panel)); % note that we do a case-insensitive alphanumeric ordering here
         labels = cell(size(panel));
-        masses = cell(size(panel));
         for i=1:num_pages
             str = strsplit(panel{idx(i)},' ('); % this is where we actually use the ordering
             labels{i} = str{1}; % extracts label
-            masses{i} = str2double(strrep(str{2}, ')', '')); % extracts mass
         end
     elseif (strcmp(ext, ''))
         % path is to folder of tiffs
@@ -30,11 +28,9 @@ function [labels] = getTIFFLabels(path)
         end
 
         labels = cell(size(panel));
-        masses = cell(size(panel));
         for i=1:num_pages
             str = strsplit(panel{idx(i)},' ('); % this is where we actually use the ordering
             labels{i} = str{1}; % extracts label
-            masses{i} = str2double(strrep(str{2}, ')', '')); % extracts mass
         end
     else
         % path is to a dark void in your soul
