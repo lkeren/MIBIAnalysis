@@ -103,10 +103,18 @@ function manage_loaded_data(handles)
     for i=1:numel(deletePaths) % remove data we don't want anymore
         remove(pipeline_data.rawData, deletePaths{i});
     end
-    for i=1:numel(loadPaths) % load unloaded data
-        data = struct();
-        [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
-        pipeline_data.rawData(loadPaths{i}) = data;
+    if numel(loadPaths)>0
+        set(handles.figure1, 'pointer', 'watch');
+        drawnow
+        waitfig = waitbar(0, 'Loading TIFF data...');
+        for i=1:numel(loadPaths) % load unloaded data
+            data = struct();
+            [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
+            pipeline_data.rawData(loadPaths{i}) = data;
+            waitbar(i/numel(loadPaths), waitfig, 'Loading TIFF data...');
+        end
+        close(waitfig);
+        set(handles.figure1, 'pointer', 'arrow');
     end
     
 
@@ -243,10 +251,10 @@ function gaussian_radius_bkg_Callback(hObject, eventdata, handles)
         % pipeline_data.gausRad = str2double(get(hObject,'String'));
         if isnan(str2double(get(hObject,'String')))
             set(hObject, 'String', '0');
-            warning('Value for Gaussian radius is not a number');
+            gui_warning('Value for Gaussian radius is not a number');
         end
     catch
-        warning('Value for Gaussian radius is not a number');
+        gui_warning('Value for Gaussian radius is not a number');
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -264,7 +272,7 @@ end
     try
         pipeline_data.gausRad = str2double(get(hObject,'String'));
     catch
-        warning('Value for Gaussian radius is not a number');
+        gui_warning('Value for Gaussian radius is not a number');
     end
 
 function threshold_bkg_Callback(hObject, eventdata, handles)
@@ -278,10 +286,10 @@ function threshold_bkg_Callback(hObject, eventdata, handles)
         % pipeline_data.t = str2double(get(hObject,'String'));
         if isnan(str2double(get(hObject,'String')))
             set(hObject, 'String', '0');
-            warning('Value for Threshold is not a number');
+            gui_warning('Value for Threshold is not a number');
         end
     catch
-        warning('Value for Threshold is not a number');
+        gui_warning('Value for Threshold is not a number');
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -299,7 +307,7 @@ end
     try
         pipeline_data.t = str2double(get(hObject,'String'));
     catch
-        warning('Value for Threshold is not a number');
+        gui_warning('Value for Threshold is not a number');
     end
 
 function rm_val_Callback(hObject, eventdata, handles)
@@ -313,10 +321,10 @@ function rm_val_Callback(hObject, eventdata, handles)
         % pipeline_data.removeVal = str2double(get(hObject,'String'));
         if isnan(str2double(get(hObject,'String')))
             set(hObject, 'String', '0');
-            warning('Value for Removal Value is not a number');
+            gui_warning('Value for Removal Value is not a number');
         end
     catch
-        warning('Value for Removal Value is not a number');
+        gui_warning('Value for Removal Value is not a number');
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -334,7 +342,7 @@ end
     try
         pipeline_data.removeVal = str2double(get(hObject,'String'));
     catch
-        warning('Value for Removal Value is not a number');
+        gui_warning('Value for Removal Value is not a number');
     end
 
 
@@ -349,10 +357,10 @@ function background_cap_display_Callback(hObject, eventdata, handles)
         % pipeline_data.capBgChannel = str2double(get(hObject,'String'));
         if isnan(str2double(get(hObject,'String')))
             set(hObject, 'String', '0');
-            warning('Value for Background Cap is not a number');
+            gui_warning('Value for Background Cap is not a number');
         end
     catch
-        warning('Value for Background Cap is not a number');
+        gui_warning('Value for Background Cap is not a number');
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -370,7 +378,7 @@ end
     try
         pipeline_data.capBgChannel = str2double(get(hObject,'String'));
     catch
-        warning('Value for Background Cap is not a number');
+        gui_warning('Value for Background Cap is not a number');
     end
     
 function evaluation_cap_display_Callback(hObject, eventdata, handles)
@@ -380,10 +388,10 @@ function evaluation_cap_display_Callback(hObject, eventdata, handles)
     try
         if isnan(str2double(get(hObject,'String')))
             set(hObject, 'String', '0');
-            warning('Value for Evaluation Cap is not a number');
+            gui_warning('Value for Evaluation Cap is not a number');
         end
     catch
-        warning('Value for Evaluation Cap is not a number');
+        gui_warning('Value for Evaluation Cap is not a number');
     end
 
 % --- Executes during object creation, after setting all properties.
@@ -401,7 +409,7 @@ end
         global pipeline_data;
         pipeline_data.capEvalChannel = str2double(get(hObject,'String'));
     catch
-        warning('Value for Evaluation Cap is not a number');
+        gui_warning('Value for Evaluation Cap is not a number');
     end
     
 function handle_background_and_evaluation_params(handles)
@@ -436,8 +444,11 @@ function test_Callback(hObject, eventdata, handles)
         pipeline_data.background_point = point_filename;
 
         handle_background_and_evaluation_params(handles);
-
+        
+        set(handles.figure1, 'pointer', 'watch')
+        drawnow
         MIBItestBackgroundParameters();
+        set(handles.figure1, 'pointer', 'arrow')
         % when we run test, we want to store the params we just used in bkg_rm_settings_listbox
         % this means store gaussian_radius_bkg, threshold_bkg, rm_val, background_cap_display
         % param_string = tabJoin({gausRad, threshold, rm_val, capBgChannel, capEvalChannel}, 6);
@@ -450,8 +461,9 @@ function test_Callback(hObject, eventdata, handles)
             set(handles.bkg_rm_settings_listbox, 'String', curList);
         end
         set(handles.remove_background, 'Enable', 'on');
-    catch
-        warning('No point selected');
+    catch e
+        disp(e);
+        gui_warning('No point selected');
     end
 
 % --- Executes on selection change in bkg_rm_settings_listbox.
@@ -483,7 +495,7 @@ function reload_bkg_params_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     try
         contents = cellstr(get(handles.bkg_rm_settings_listbox,'String'));
-        settings = str2double(strsplit(tabSplit(contents{get(handles.bkg_rm_settings_listbox,'Value')}), ' ') );
+        settings = str2double(strsplit(tabSplit(contents{get(handles.bkg_rm_settings_listbox,'Value')}), char(8197)) );
 
         gausRad = settings(1);
         threshold = settings(2);
@@ -614,7 +626,11 @@ function evaluate_point_Callback(hObject, eventdata, handles)
 
         pipeline_data.evalChannel = evalChannel;
         pipeline_data.evalChannelInd = evalChannelInd;
+        
+        set(handles.figure1, 'pointer', 'watch');
+        drawnow;
         MIBIevaluateBackgroundParameters({evalPoint});
+        set(handles.figure1, 'pointer', 'arrow');
 
         curList = get(handles.eval_settings_listbox, 'String');
 
@@ -627,7 +643,7 @@ function evaluate_point_Callback(hObject, eventdata, handles)
         end
         set(handles.remove_background, 'Enable', 'on');
     catch
-        warning('No point selected');
+        gui_warning('No point selected');
     end
 
 % --- Executes on button press in evaluate_all_points.
@@ -646,7 +662,10 @@ function evaluate_all_points_Callback(hObject, eventdata, handles)
 
         pipeline_data.evalChannel = evalChannel;
         pipeline_data.evalChannelInd = evalChannelInd;
+        set(handles.figure1, 'pointer', 'watch');
+        drawnow
         MIBIevaluateBackgroundParameters(evalPoints);
+        set(handles.figure1, 'pointer', 'arrow');
 
         curList = get(handles.eval_settings_listbox, 'String');
 
@@ -667,12 +686,15 @@ function remove_background_Callback(hObject, eventdata, handles)
 % hObject    handle to remove_background (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+    set(handles.figure1, 'pointer', 'watch');
+    drawnow
     pathToLog = uigetdir();
     if pathToLog~=0
         set(hObject, 'Enable', 'off');
         MIBI_remove_background(pathToLog);
         set(hObject, 'Enable', 'on');
     end
+    set(handles.figure1, 'pointer', 'arrow');
 
 
 % --- Executes on button press in load_params.
@@ -717,7 +739,7 @@ function reload_eval_params_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     try
         contents = cellstr(get(handles.eval_settings_listbox, 'String'));
-        settings = str2double(strsplit(tabSplit(contents{get(handles.eval_settings_listbox, 'Value')}), ' ') );
+        settings = str2double(strsplit(tabSplit(contents{get(handles.eval_settings_listbox, 'Value')}), char(8197)) );
         
         rm_val = settings(1);
         capEvalChannel = settings(2);
@@ -728,8 +750,8 @@ function reload_eval_params_Callback(hObject, eventdata, handles)
         global pipeline_data;
         pipeline_data.removeVal = rm_val;
         pipeline_data.capEvalChannel = capEvalChannel;
-    catch
-        % do nothing
+    catch e
+        disp(e);
     end
 
 % --- Executes on button press in delete_eval_setting.

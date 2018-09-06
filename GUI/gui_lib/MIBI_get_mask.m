@@ -30,7 +30,7 @@ bw = mat2gray(rawMaskDataG);
 % imshow(bw);
 level = graythresh(bw);
 if plot
-    figure;
+    figure();
     hold on;
     histogram(bw);
     title(wrap_text(titletext, 100, [' ', filesep]))
@@ -40,7 +40,7 @@ if plot
 end
 mask = imbinarize(bw,t);
 if plot
-    figure;
+    figure();
     imagesc(mask);
     title(titletext)
     plotbrowser on;
