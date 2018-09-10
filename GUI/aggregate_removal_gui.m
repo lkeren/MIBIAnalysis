@@ -108,7 +108,7 @@ function manage_loaded_data(handles)
     hedges = 0:0.25:30;
     startTime = tic;
     if numel(loadPaths)>0
-        wait = waitbar(0, ['Loading TIFF data...', newline, '"When I let go of what I am, I become what I might be." - Lao Tzu.']);
+        wait = waitbar(0, ['Loading TIFF data...', newline, '"When I let go of what I am, I become what I might be." - Lao Tzu']);
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
             [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
@@ -314,17 +314,20 @@ function plotAggRmParams(handles)
             xlim(xlimits);
             ylim(ylimits);
         end
-        title('It a data');
+        title(label);
     catch
         
     end   
     
     
-function reset_plot_Callback(hObject, eventdata, handles)
+function reset_plot_Callback(hObject, eventdata, hadles)
+    % handles = guidata(hObject);
     global pipeline_data;
     sfigure(pipeline_data.tiffFigure);
     imagesc(pipeline_data.currdata);
-    title('It a data');
+%     channel_params = getChannelParams(handles);
+%     label = channel_params{1};
+%     title(label);
     
 % --- Executes on button press in add_point_button.
 function add_point_button_Callback(hObject, eventdata, handles)
@@ -445,7 +448,8 @@ function threshold_display_text_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of threshold_display_text as a double
     try
         val = str2double(get(hObject,'String'));
-        setThresholdSlider(val, handles)
+        setThresholdSlider(val, handles);
+        plotAggRmParams(handles);
     catch
         
     end
@@ -568,11 +572,13 @@ function remove_aggregates_button_Callback(hObject, eventdata, handles)
                 
                 countsNoNoiseNoAgg(:,:,j) = MibiFilterAggregates(countsNoNoise(:,:,j),radius,threshold,gausFlag);
             end
-            [~, file, ~] = fileparts(pipeline_data.corePath{i});
-            path = [cleanDataPath, filesep, file];
-            mkdir(path);
-            save([path, filesep,'dataNoAgg.mat'],'countsNoNoiseNoAgg');
-            MibiSaveTifs([path, filesep,'TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
+            [savePath, file, ~] = fileparts(pipeline_data.corePath{i});
+            [savePath, ~, ~] = fileparts(savePath);
+            savePath = [savePath, filesep, 'NoAggData'];
+%             path = [cleanDataPath, filesep, file];
+%             mkdir(path);
+            MibiSaveTifs([savePath,filesep,file,'_TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
+            save([savePath, filesep,file,'_dataNoAgg.mat'],'countsNoNoiseNoAgg');
             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Removing aggregates...');
         end
         close(waitfig);
@@ -755,6 +761,7 @@ function radius_display_text_Callback(hObject, eventdata, handles)
     try
         val = str2double(get(hObject,'String'));
         setRadiusSlider(val, handles);
+        plotAggRmParams(handles);
     catch
         
     end

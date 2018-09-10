@@ -602,7 +602,8 @@ function threshold_minmax_button_Callback(hObject, eventdata, handles)
 % hObject    handle to threshold_minmax_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    vals = inputdlg({'Threshold minimum', 'Threshold maximum'});
+    defaults = {num2str(get(handles.threshold_slider, 'Min')), num2str(get(handles.threshold_slider, 'Max'))};
+    vals = inputdlg({'Threshold minimum', 'Threshold maximum'}, 'Threshold range', 1, defaults);
     try
         vals = str2double(vals);
         if vals(2)>vals(1)
@@ -624,7 +625,7 @@ function threshold_minmax_button_Callback(hObject, eventdata, handles)
             gui_warning('Threshold maximum must be greater than threshold minimum');
         end
     catch
-        gui_warning('You did not enter valid numbers');
+        % do nothing
     end
 
 
@@ -694,10 +695,13 @@ function denoise_button_Callback(hObject, eventdata, handles)
         waitfig = waitbar(0, 'Denoising points...');
         for i=1:numel(pipeline_data.corePath)
             path = pipeline_data.corePath{i};
+            [savePath, name, ~] = fileparts(path);
+            [savePath, ~, ~] = fileparts(savePath);
+            savePath = [savePath, filesep, 'NoNoiseData'];
             countsNoNoise = MibiFilterAllByNN(pipeline_data.dataNoBg(path).countsAllSFiltCRSum,pipeline_data.IntNormDData(path),pipeline_data.noiseT);
-            mkdir([cleanDataPath,'/Point',num2str(i)]);
-            save([cleanDataPath,'/Point',num2str(i),'/dataDeNoiseCohort.mat'],'countsNoNoise');
-            MibiSaveTifs ([cleanDataPath,'/Point',num2str(i),'/TIFsNoNoise/'], countsNoNoise, pipeline_data.labels)
+            % mkdir([cleanDataPath,'/Point',num2str(i)]);
+            MibiSaveTifs ([savePath,filesep,name,'_TIFsNoNoise',filesep], countsNoNoise, pipeline_data.labels)
+            save([savePath,filesep,name,'_dataDeNoiseCohort.mat'],'countsNoNoise');
             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Denoising points...');
     %         close all;
         end

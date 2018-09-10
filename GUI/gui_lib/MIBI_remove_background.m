@@ -19,6 +19,8 @@ function [] = MIBI_remove_background(pathToLog)
         mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,0,'');
         countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
         [savePath, name, ~] = fileparts(corePath{i});
+        [savePath, ~, ~] = fileparts(savePath);
+        savePath = [savePath, filesep, 'NoBgData'];
         MibiSaveTifs ([savePath,filesep,name,'_TIFsNoBg',filesep], countsNoBg, labels)
         save ([savePath,filesep,name,'_dataNoBg.mat'],'countsNoBg');
         waitbar(i/length(corePath), waitfig, 'Removing background');
