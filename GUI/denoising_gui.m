@@ -690,8 +690,8 @@ function denoise_button_Callback(hObject, eventdata, handles)
             pipeline_data.IntNormDData(pipeline_data.corePath{poi}) = IntNormDCell;
         end
 
-        cleanDataPath = [cleanDataPath, filesep, 'cleanData'];
-        mkdir(cleanDataPath);
+%         cleanDataPath = [cleanDataPath, filesep, 'cleanData'];
+%         mkdir(cleanDataPath);
         waitfig = waitbar(0, 'Denoising points...');
         for i=1:numel(pipeline_data.corePath)
             path = pipeline_data.corePath{i};

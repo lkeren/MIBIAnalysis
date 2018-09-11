@@ -1,0 +1,147 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww12960\viewh10980\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs24 \cf2 \expnd0\expndtw0\kerning0
+BACKGROUND REMOVAL GUI\
+\pard\pardeftab720\partightenfactor0
+
+\b0 \cf2 \
+First, run background_removal_gui.m, this opens the background removal GUI.\
+First we have to add points we want to denoise. Do this by clicking the \'93
+\b Add Point(s)
+\b0 \'94 button in the 
+\b \'93Manage Points and Select Background Channel\'94
+\b0  section, which opens a file navigator. Navigate to the folder that has your data, and select the points you want to remove the background from. Note: these should be either folders of TIFFs or multi-layered TIFFs.\
+Once we\'92ve added the points, we need to select a point and channel to use for selecting background removal parameters. To do this, click on the point you want to use, and select from the dropdown menu the channel you want to use, then click the 
+\b \'93Load\'94
+\b0  button. This will select the desired point-channel combination and plot it for your viewing convenience.\
+\
+Now we can select background parameters in the 
+\b \'93Background Removal Parameters\'94
+\b0  section. There are three parameters for generating a mask, the 
+\b Gaussian radius
+\b0  of the blur, the 
+\b Threshold
+\b0  we cutoff at, and the 
+\b Background Cap
+\b0 . Enter the parameters you want to test on the currently selected point and channel combination, and press the 
+\b \'93Test\'94
+\b0  button (if you want you select other point-channel pairs, press \'93Load\'94, and test the same parameters, or other parameters). The GUI will save a little history of what parameters you\'92ve loaded, which you can manage using the 
+\b \'93Delete\'94
+\b0  and 
+\b \'93Reload\'94
+\b0  buttons, which remove a selected set of parameters or loads the selected set of parameters for easy re-testing, respectively. When you press the \'93Test\'94 button, an image of the generated mask and a histogram will be displayed.\
+\
+If we want we can evaluate our choice of background removal parameters on other point-channel combinations. To do so, look in the 
+\b \'93Evaluation Parameters\'94
+\b0  section, and select the desired point from the 
+\b \'93Point\'94
+\b0  dropdown menu, as well as the desired channel from the 
+\b \'93Channel\'94
+\b0  dropdown menu. We can choose the value to be removed from the channel as well as the evaluation cap in the \'93
+\b Remove value\'94
+\b0  and 
+\b \'93Evaluation Cap\'94
+\b0  boxes, respectively. When you\'92ve picked the parameters you want to evaluate, either click the 
+\b \'93Evaluate Point\'94
+\b0  button to evaluate the desired parameters on the selected channel and point, displaying the before and after images for that channel and point, OR click the 
+\b \'93Evaluate All Points\'94
+\b0  button to evaluate the desired parameters on the selected channel across ALL points, displaying the before and after for each point on the selected channel. As before, the GUI saves a history of your evaluation parameters, which can be managed with the 
+\b \'93Delete\'94
+\b0  and 
+\b \'93Reload\'94 
+\b0 buttons.\
+\
+Once you\'92re comfortable with the selected background removal parameters, you can look under the 
+\b \'93Background Removal\'94
+\b0  section and click the 
+\b \'93Remove\'94
+\b0  button. This opens up a file navigator window, which you can use to select which folder the log file your your background removal session can be saved. Once you select the folder you want the log file saved, the background parameters will be applied to all the channels in all the points you added in the first step, and will be saved into a new folder called 
+\b \'93NoBgData\'94
+\b0  parallel to the folder your points were originally in, and the log file recording the parameters you used will be saved into the folder you selected. If you were feeling very confident in the previous steps and didn\'92t actually test the background parameters or evaluate the removal parameters but simply entered the parameters you wanted to use, click the 
+\b \'93Load Params\'94
+\b0  button before you click the 
+\b \'93Remove\'94 
+\b0 button.\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\b \cf2 DENOISING GUI\
+\pard\pardeftab720\partightenfactor0
+
+\b0 \cf2 \
+First, run denoising_gui.m, this opens the denoising GUI.\
+First we have to add points we want to denoise. Do this by clicking the \'93
+\b Add Point(s)
+\b0 \'94 button in the 
+\b \'93Manage Points\'94
+\b0  section, which opens a file navigator. Navigate to the folder that has your data, and select the points you want to denoise from. Note: these should be either folders of TIFFs or multi-layered TIFFs.\
+Adding the points will take a little time, because a nearest neighbor calculation is done for every channel in every point. The ETA is not very accurate, and will usually take less time than indicated because some channels have more signal. Once the calculation is complete, you can select a point to work on in the next step, which is actually picking denoising parameters for each channel. To do this, select the desired point and click the 
+\b \'93Select\'94
+\b0  button. Once you do this, an image of the channel after denoising will pop up, as will a plot of the nearest neighbor distribution. I personally recommend you move and adjust the two windows, the image and distribution, to whatever is most convenient for you. Note: at first you will probably only see one, because the figures are automatically placed over each other.\
+\
+Once you select a point, you will notice the large white box inside of the 
+\b \'93Denoising Parameters\'94
+\b0  section populates with channel names and various numbers. This display indicates the currently chosen values for each channel (at the moment channels have the same values across all points). The slider marked 
+\b \'93Threshold\'94
+\b0  can be used to change the nearest neighbor threshold for the selected channel, the threshold value can also be edited in the text box right next to the slider. You can change the range of values taken by the slider by clicking the 
+\b \'93Threshold\'94
+\b0  button and modifying the minimum and maximum values. If you want to use a different k-val for the the nearest neighbor calculation, enter a different value in the 
+\b \'93K-val\'94
+\b0  text box and click the 
+\b \'93Recalculate\'94
+\b0  button. If you change this value but then change your mind and you DON\'92T want to recalculate, click the 
+\b \'93Reset\'94
+\b0  button. You can easily switch between different channels by simply clicking on them, and if you want to look at channels on a different point, simply select the point under the 
+\b \'93Manage Points\'94
+\b0  section and click the 
+\b \'93Select\'94
+\b0  button. You can double click on a channel to mark (or unmark) it, as a visual aid for you when going through many channels, in case you find it hard to remember what channels you have already worked on.\
+\
+If you decide you want to continue working later on denoising, you can click the 
+\b \'93Save Run\'94
+\b0  button at the bottom of the GUI, which will prompt you to pick a folder location and file name to save your work. This will save the relevant information into a .mat file, which you can later open by clicking the 
+\b \'93Load Run\'94
+\b0  button. Once you are satisfied with the denoising parameters you have selected, click the 
+\b \'93Denoise\'94
+\b0  button. This will open a file navigator window which allows you to select the folder in which the log for this session will be saved. The log files contains information about the parameters you used for denoising. The denoising parameters will be applied to the points you loaded, and the results will be saved into a folder called 
+\b \'93NoNoiseData\'94
+\b0 , parallel to the folder you\'92re points are in.\
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\b \cf2 AGGREGATE REMOVAL GUI
+\b0 \
+\
+First, run aggregate_removal_gui.m, this opens the aggregate removal GUI.\
+First we have to add points we want to remove aggregates from. Do this by clicking the \'93
+\b Add Point(s)
+\b0 \'94 button in the 
+\b \'93Manage Points\'94
+\b0  section, which opens a file navigator. Navigate to the folder that has your data, and select the points you want to remove the background from. Note: these should be either folders of TIFFs or multi-layered TIFFs.\
+Once we\'92ve added the points, we need to select a point to use for selecting aggregate removal parameters. To do this, click on the point you want to use and click the 
+\b \'93Select\'94
+\b0  button. This will select the desired point and plot it for your viewing convenience, applying some default aggregate removal parameters.\
+\
+As with the denoising GUI, you will notice a large white box populate with channel names and numbers after you have selected a point. These indicate the aggregate removal parameters for each channel. These parameters (
+\b \'93Threshold\'94
+\b0 , 
+\b \'93Radius\'94
+\b0 , and 
+\b \'93Cap\'94
+\b0 ) can be modified with their respective sliders or text boxes. You can change the ranges of each of these sliders by clicking on the buttons near the sliders and entering new values for the minimum and maximum values. Changes to the values will be more or less instantaneously. As with the denoising GUI, you can save and reload your work mid-run using the 
+\b \'93Save Run\'94
+\b0  and 
+\b \'93Load Run\'94
+\b0  buttons. You can double click on a channel to mark (or unmark) it, as a visual aid for you when going through many channels, in case you find it hard to remember what channels you have already worked on. Once you are satisfied with the aggregate removal parameters you have selected, click the 
+\b \'93Remove Aggregates\'94
+\b0  button, which will open a file navigator window, allowing you to select which folder the log file for this run will be save in. Once you have selected this location, the aggregate removal parameters will be applied and the results saved inside of a folder called 
+\b \'93NoAggData\'94
+\b0 , parallel to the folder in which your original points were stored.}
