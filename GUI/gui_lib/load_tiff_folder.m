@@ -1,5 +1,9 @@
 function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
     fileList = dir(fullfile(dirname, '*.tiff'));
+    if isempty(fileList)
+        fileList = dir(fullfile(dirname, '*.tif'));
+    end
+    fileList.name
     num_pages = numel(fileList);
     files = {fileList.name}';
     [~, idx] = sort(upper(files));
@@ -8,13 +12,16 @@ function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
     heights = zeros(size(files));
     panel = cell(size(files));
     infos = cell(size(files));
-
     for i=1:numel(files)
         info = imfinfo(fullfile(dirname, files{i}));
         infos{i} = info;
         widths(i) = info.Width;
         heights(i) = info.Height;
-        panel{i} = info.PageName;
+        try
+            panel{i} = info.PageName;
+        catch
+            [~, panel{i}, ~] = fileparts(files{i});
+        end
     end
 
     if all(widths==widths(1)) && all(heights==heights(1))
