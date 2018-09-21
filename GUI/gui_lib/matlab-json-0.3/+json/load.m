@@ -100,8 +100,8 @@ function value = parseData(node, options)
       field = char(key);
       safe_field = genvarname(char(key), fieldnames(value));
       if ~strcmp(field, safe_field)
-        warning('json:fieldNameConflict', ...
-                'Field %s renamed to %s', field, safe_field);
+%         warning('json:fieldNameConflict', ...
+%                 'Field %s renamed to %s', field, safe_field);
       end
       value.(safe_field) = parseData(node.get(java.lang.String(key)), options);
     end

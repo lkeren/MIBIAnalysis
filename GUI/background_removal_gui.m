@@ -642,7 +642,8 @@ function evaluate_point_Callback(hObject, eventdata, handles)
             set(handles.eval_settings_listbox, 'String', curList);
         end
         set(handles.remove_background, 'Enable', 'on');
-    catch
+    catch e
+        disp(e);
         gui_warning('No point selected');
     end
 

@@ -14,7 +14,7 @@ function [] = MIBItestBackgroundParameters()
     
     [~,bgChannelInd] = ismember(bgChannel,labels);
     mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,1, titletext);
-    countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
+    countsNoBg = gui_MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
     pipeline_data.countsNoBg = countsNoBg;
 end
 

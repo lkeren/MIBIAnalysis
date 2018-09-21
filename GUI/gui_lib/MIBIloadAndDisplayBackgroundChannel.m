@@ -9,7 +9,7 @@ function [] = MIBIloadAndDisplayBackgroundChannel()
     [~,bgChannelInd] = ismember(bgChannel,labels);
     point_name = pipeline_data.background_point;
     point_name = strrep(point_name, '_', '\_');
-    MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name]); plotbrowser on;
+    gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name]); plotbrowser on;
     
 end
 
