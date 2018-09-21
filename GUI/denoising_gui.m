@@ -350,7 +350,7 @@ function plotDenoisingParams(handles)
     % data, so we need to do that in case we don't get anything.
     try
         IntNormD = pipeline_data.IntNormD(key);
-        countsNoNoise = MibiFilterImageByNNThreshold(countsNoBg.countsAllSFiltCRSum(:,:,plotChannelInd), IntNormD, temp.threshold);
+        countsNoNoise = gui_MibiFilterImageByNNThreshold(countsNoBg.countsAllSFiltCRSum(:,:,plotChannelInd), IntNormD, temp.threshold);
     catch
         try
             set(handles.figure1, 'pointer', 'watch')
@@ -358,7 +358,7 @@ function plotDenoisingParams(handles)
             pipeline_data.IntNormD(key) = MIBI_get_int_norm_dist(countsNoBg.countsAllSFiltCRSum(:,:,plotChannelInd), temp.k_val);
             pipeline_data.histograms(key) = histcounts(pipeline_data.IntNormD(key),hedges,'Normalization','probability');
             IntNormD = pipeline_data.IntNormD(key);
-            countsNoNoise = MibiFilterImageByNNThreshold(countsNoBg.countsAllSFiltCRSum(:,:,plotChannelInd), IntNormD, temp.threshold);
+            countsNoNoise = gui_MibiFilterImageByNNThreshold(countsNoBg.countsAllSFiltCRSum(:,:,plotChannelInd), IntNormD, temp.threshold);
             set(handles.figure1, 'pointer', 'arrow');
         catch e
             disp(e);
@@ -371,6 +371,7 @@ function plotDenoisingParams(handles)
         pipeline_data.tiffFigure = sfigure();
     end
     imagesc(countsNoNoise);
+    title(label);
     try
         sfigure(pipeline_data.histFigure);
     catch
@@ -579,7 +580,7 @@ function channel_list_box_Callback(hObject, eventdata, handles)
     end
     
     
-%     countsNoNoise{i} = MibiFilterImageByNNThreshold(p{i}.countsNoBg(:,:,plotChannelInd),p{i}.IntNormD{plotChannelInd},t);
+%     countsNoNoise{i} = gui_MibiFilterImageByNNThreshold(p{i}.countsNoBg(:,:,plotChannelInd),p{i}.IntNormD{plotChannelInd},t);
 %     MibiPlotDataAndCap(p{i}.countsNoBg(:,:,plotChannelInd),capImage,['Core number ',num2str(i), ' - Before']); plotbrowser on;
 %     MibiPlotDataAndCap(countsNoNoise{i},capImage,['Core number ',num2str(i), ' - After. T=',num2str(t)]); plotbrowser on;
     
@@ -698,9 +699,9 @@ function denoise_button_Callback(hObject, eventdata, handles)
             [savePath, name, ~] = fileparts(path);
             [savePath, ~, ~] = fileparts(savePath);
             savePath = [savePath, filesep, 'NoNoiseData'];
-            countsNoNoise = MibiFilterAllByNN(pipeline_data.dataNoBg(path).countsAllSFiltCRSum,pipeline_data.IntNormDData(path),pipeline_data.noiseT);
+            countsNoNoise = gui_MibiFilterAllByNN(pipeline_data.dataNoBg(path).countsAllSFiltCRSum,pipeline_data.IntNormDData(path),pipeline_data.noiseT);
             % mkdir([cleanDataPath,'/Point',num2str(i)]);
-            MibiSaveTifs ([savePath,filesep,name,'_TIFsNoNoise',filesep], countsNoNoise, pipeline_data.labels)
+            gui_MibiSaveTifs ([savePath,filesep,name,'_TIFsNoNoise',filesep], countsNoNoise, pipeline_data.labels)
             save([savePath,filesep,name,'_dataDeNoiseCohort.mat'],'countsNoNoise');
             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Denoising points...');
     %         close all;

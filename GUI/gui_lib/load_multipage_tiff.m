@@ -9,7 +9,7 @@ function [countsAllSFiltCRSum, labels] = load_multipage_tiff(fname)
         countsAllSFiltCRSum = zeros(widths(1), heights(1), num_pages);
         labels = cell(size(panel));
         for i=1:num_pages
-            str = strsplit(panel{idx(i)},' ('); % this is where we actually use the ordering
+            str = strsplit(panel{idx(i)},' ('); % this is where we actually use the ordering? we might not need to actually use the ordering
             labels{i} = str{1}; % extracts label
             countsAllSFiltCRSum(:,:,i) = imread(fname, idx(i), 'Info', info);
         end
