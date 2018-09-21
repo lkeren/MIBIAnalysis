@@ -1,5 +1,5 @@
 function [intND] = MIBI_get_int_norm_dist(data, K)
-    [IDX, closestDvecBA] = MibiGetClosestDDoubleCountPeaks(data,data,K);
+    [IDX, closestDvecBA] = gui_MibiGetClosestDDoubleCountPeaks(data,data,K);
     if isempty(closestDvecBA)
         intND=[];
     else

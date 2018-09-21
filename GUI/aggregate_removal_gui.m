@@ -301,7 +301,7 @@ function plotAggRmParams(handles)
         else
             gausFlag = 1;
         end
-        countsNoNoiseNoAgg = MibiFilterAggregates(countsNoNoise.countsAllSFiltCRSum(:,:,plotChannelInd),radius,threshold,gausFlag);
+        countsNoNoiseNoAgg = gui_MibiFilterAggregates(countsNoNoise.countsAllSFiltCRSum(:,:,plotChannelInd),radius,threshold,gausFlag);
         size(countsNoNoiseNoAgg);
         
         currdata = countsNoNoiseNoAgg;
@@ -570,14 +570,14 @@ function remove_aggregates_button_Callback(hObject, eventdata, handles)
                     gausFlag = 1;
                 end
                 
-                countsNoNoiseNoAgg(:,:,j) = MibiFilterAggregates(countsNoNoise(:,:,j),radius,threshold,gausFlag);
+                countsNoNoiseNoAgg(:,:,j) = gui_MibiFilterAggregates(countsNoNoise(:,:,j),radius,threshold,gausFlag);
             end
             [savePath, file, ~] = fileparts(pipeline_data.corePath{i});
             [savePath, ~, ~] = fileparts(savePath);
             savePath = [savePath, filesep, 'NoAggData'];
 %             path = [cleanDataPath, filesep, file];
 %             mkdir(path);
-            MibiSaveTifs([savePath,filesep,file,'_TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
+            gui_MibiSaveTifs([savePath,filesep,file,'_TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
             save([savePath, filesep,file,'_dataNoAgg.mat'],'countsNoNoiseNoAgg');
             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Removing aggregates...');
         end
