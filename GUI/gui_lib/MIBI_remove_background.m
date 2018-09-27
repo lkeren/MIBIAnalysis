@@ -30,6 +30,6 @@ function [] = MIBI_remove_background(pathToLog)
     fid = fopen([pathToLog, filesep, '[', datestr(datetime('now')), ']_background_removal.log'], 'wt');
     fprintf(fid, 'background channel: %s\nbackground cap: %f\nevaluation cap: %f\ngaussian radius: %f\nthreshold: %f\nremove value: %f', bgChannel, capBgChannel, capEvalChannel, gausRad, t, removeVal);
     fclose(fid);
-    disp("Finished removing background.");
+    disp('Finished removing background.');
 end
 
