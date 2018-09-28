@@ -1,4 +1,8 @@
 function [countsAllSFiltCRSum, labels] = load_tiff_data(path)
+    [masterPath, ~, ~] = fileparts(mfilename('fullpath'));
+    fileID = fopen([masterPath, filesep, 'pathext.txt'], 'r');
+    pathext = fscanf(fileID, '%s');
+    path = [path, filesep, pathext];
     [~, ~, ext] = fileparts(path);
     if strcmp(ext, '.tiff') || strcmp(ext, '.tif') || strcmp(ext, '.TIFF') || strcmp(ext, '.TIF')
         % path is to tiff file

@@ -3,7 +3,6 @@ function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
     if isempty(fileList)
         fileList = dir(fullfile(dirname, '*.tif'));
     end
-    fileList.name
     num_pages = numel(fileList);
     files = {fileList.name}';
     [~, idx] = sort(upper(files));
@@ -24,7 +23,7 @@ function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
         end
     end
 
-    if all(widths==widths(1)) && all(heights==heights(1))
+    if ~isempty(widths) && all(widths==widths(1)) && all(heights==heights(1))
         countsAllSFiltCRSum = zeros(widths(1), heights(1), num_pages);
         labels = cell(size(panel));
         for i=1:num_pages
