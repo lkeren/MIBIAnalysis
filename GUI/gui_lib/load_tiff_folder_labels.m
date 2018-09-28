@@ -3,7 +3,6 @@ function [labels] = load_tiff_folder_labels(dirname)
     if isempty(fileList)
         fileList = dir(fullfile(dirname, '*.tif'));
     end
-    fileList.name
     num_pages = numel(fileList);
     files = {fileList.name}';
     [~, idx] = sort(upper(files));
@@ -24,7 +23,7 @@ function [labels] = load_tiff_folder_labels(dirname)
         end
     end
 
-    if all(widths==widths(1)) && all(heights==heights(1))
+    if ~isempty(widths) && all(widths==widths(1)) && all(heights==heights(1))
         labels = cell(size(panel));
         for i=1:num_pages
             str = strsplit(panel{i},' ('); % this is where we actually use the ordering
