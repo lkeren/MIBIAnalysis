@@ -27,7 +27,7 @@ function varargout = background_removal_gui(varargin)
 
 % Edit the above text to modify the response to help background_removal_gui
 
-% Last Modified by GUIDE v2.5 05-Oct-2018 10:29:15
+% Last Modified by GUIDE v2.5 05-Oct-2018 14:56:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -457,7 +457,7 @@ function test_Callback(hObject, eventdata, handles)
         
         set(handles.figure1, 'pointer', 'watch')
         drawnow
-        MIBItestBackgroundParameters();
+        MIBItestBackgroundParameters(get(handles.radiobutton2, 'Value'));
         set(handles.figure1, 'pointer', 'arrow')
         % when we run test, we want to store the params we just used in bkg_rm_settings_listbox
         % this means store gaussian_radius_bkg, threshold_bkg, rm_val, background_cap_display
@@ -792,3 +792,12 @@ function radiobutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of radiobutton1
+
+
+% --- Executes on button press in radiobutton2.
+function radiobutton2_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton2

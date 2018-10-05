@@ -1,4 +1,4 @@
-function mask = MIBI_get_mask(rawMaskData,cap,t,gausRad,plot,titletext)
+function mask = MIBI_get_mask(rawMaskData,cap,t,gausRad,plot,titletext,reuseFigure)
 % NOTE: to get original behavior, simply call
 % MibiGetMask(rawMaskDAta,cap,t,gausRad,1,'');
 
@@ -8,6 +8,7 @@ function mask = MIBI_get_mask(rawMaskData,cap,t,gausRad,plot,titletext)
 % cap is the capping intensity for the image. Equals 10 by default.
 % t is the a value to threshold the image. Equals 0.07 by default.
 
+global pipeline_data;
 
 % cap raw data
 if ~exist('cap')
@@ -30,7 +31,21 @@ bw = mat2gray(rawMaskDataG);
 % imshow(bw);
 level = graythresh(bw);
 if plot
-    figure();
+    if ~reuseFigure
+        pipeline_data.maskHistFig = figure();
+    else
+        try
+            existAndValid = isvalid(pipeline_data.maskHistFig);
+        catch
+            existAndValid = 0;
+        end
+        if ~existAndValid
+            pipeline_data.maskHistFig = figure();
+        else
+            figure(pipeline_data.maskHistFig);
+        end
+    end
+    clf;
     hold on;
     histogram(bw);
     title(wrap_text(titletext, 100, [' ', filesep]))
@@ -40,7 +55,20 @@ if plot
 end
 mask = imbinarize(bw,t);
 if plot
-    figure();
+    if ~reuseFigure
+        pipeline_data.maskFig = figure();
+    else
+        try
+            existAndValid = isvalid(pipeline_data.maskFig);
+        catch
+            existAndValid = 0;
+        end
+        if ~existAndValid
+            pipeline_data.maskFig = figure();
+        else
+            figure(pipeline_data.maskFig);
+        end
+    end
     imagesc(mask);
     title(titletext)
     plotbrowser on;
