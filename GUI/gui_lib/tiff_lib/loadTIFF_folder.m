@@ -1,11 +1,14 @@
 function [counts, labels, tags] = loadTIFF_folder(path)
+    % First we look for all TIFF files in the given path
     fileList = [dir(fullfile(path, '*.tiff'));...
                 dir(fullfile(path, '*.tif'))];
     if isempty(fileList)
         warning('No TIFF files found');
     end
-    num_pages = numel(fileList);
     files = {fileList.name}';
+    rmIdx = [find(strcmp(files, 'totalIon.tif')), find(strcmp(files, 'totalIon.tiff'))];
+    files(rmIdx) = []; % removes totalIon.tif and/or totalIon.tiff
+    num_pages = numel(files);
     counts = [];
     labels = {};
     tags = {};
@@ -21,5 +24,7 @@ function [counts, labels, tags] = loadTIFF_folder(path)
         end
     end
     
-    [counts, labels, tags] = sortByLabel(counts, labels, tags);
+    
+    
+    % [counts, labels, tags] = sortByLabel(counts, labels, tags);
 end

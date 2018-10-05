@@ -1,5 +1,5 @@
-function [countsAllSFiltCRSum, labels] = load_tiff_data(path, varargin)
-% This is a function for loading tiff data, whether it be a multipage tiff
+function [labels] = getTIFFLabels(path, varargin)
+% This is a function for loading tiff labels, whether it be a multipage tiff
 % or a folder of individual tiff files. You are expected to provide a path
 % to the Point that holds your data. If your Point is a folder that has
 % some internal structure more complicated than just 'a bunch of tiffs',
@@ -19,21 +19,19 @@ function [countsAllSFiltCRSum, labels] = load_tiff_data(path, varargin)
     else
         pathext = varargin{2};
     end
-    path = [path, filesep, pathext];
     disp(path);
     [~, ~, ext] = fileparts(path);
     if strcmp(ext, '.tiff') || strcmp(ext, '.tif') || strcmp(ext, '.TIFF') || strcmp(ext, '.TIF')
         % path is to tiff file
-        disp(['Loading multilayer TIFF data at ', path, '...']);
-        [countsAllSFiltCRSum, labels] = load_multipage_tiff(path);
+        labels = load_multipage_tiff_labels(path);
     elseif (strcmp(ext, ''))
         % path is to folder of tiffs
-        disp(['Loading folder of TIFF data at ', path, '...']);
-        [countsAllSFiltCRSum, labels] = load_tiff_folder(path);
+        disp([path, filesep, pathext])
+        labels = load_tiff_folder_labels([path, filesep, pathext]);
     else
         % path is to a dark void in your soul
-        countsAllSFiltCRSum = [];
         labels = {};
         warning('Path provided is not to a folder or TIFF file');
     end
 end
+

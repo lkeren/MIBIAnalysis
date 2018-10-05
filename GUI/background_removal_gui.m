@@ -63,6 +63,7 @@ pipeline_data.bgChannel = '181';
 pipeline_data.removingBackground = false;
 pipeline_data.rawData = containers.Map;
 pipeline_data.corePath = {};
+pipeline_data.points = {};
 pipeline_data.background_point = '';
 % Choose default command line output for background_removal_gui
 handles.output = hObject;
@@ -109,7 +110,8 @@ function manage_loaded_data(handles)
         waitfig = waitbar(0, 'Loading TIFF data...');
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
-            [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
+            [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
+            pipeline_data.points{end+1} = Point(loadPaths{i});
             pipeline_data.rawData(loadPaths{i}) = data;
             waitbar(i/numel(loadPaths), waitfig, 'Loading TIFF data...');
         end
