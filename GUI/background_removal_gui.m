@@ -27,7 +27,7 @@ function varargout = background_removal_gui(varargin)
 
 % Edit the above text to modify the response to help background_removal_gui
 
-% Last Modified by GUIDE v2.5 21-Aug-2018 17:45:01
+% Last Modified by GUIDE v2.5 05-Oct-2018 10:29:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -106,12 +106,12 @@ function manage_loaded_data(handles)
     end
     if numel(loadPaths)>0
         set(handles.figure1, 'pointer', 'watch');
-        drawnow
+        % drawnow
         waitfig = waitbar(0, 'Loading TIFF data...');
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
             [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
-            pipeline_data.points{end+1} = Point(loadPaths{i});
+            % pipeline_data.points{end+1} = Point(loadPaths{i});
             pipeline_data.rawData(loadPaths{i}) = data;
             waitbar(i/numel(loadPaths), waitfig, 'Loading TIFF data...');
         end
@@ -186,6 +186,7 @@ function remove_point_Callback(hObject, eventdata, handles)
 function selected_points_listbox_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns selected_points_listbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from selected_points_listbox
+    load_background(handles);
 
 % --- Executes during object creation, after setting all properties.
 function selected_points_listbox_CreateFcn(hObject, eventdata, handles)
@@ -200,22 +201,19 @@ set(hObject, 'String', {});
 function background_channel_menu_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns background_channel_menu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from background_channel_menu
-
-    % get(hObject, 'String')
+    load_background(handles);
+    
 
 % --- Executes during object creation, after setting all properties.
 function background_channel_menu_CreateFcn(hObject, eventdata, handles)
 % Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
-% --- Executes on button press in load_background.
-function load_background_Callback(hObject, eventdata, handles)
-% hObject    handle to load_background (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+
+function load_background(handles)
     try
         global pipeline_data;
         point_index = get(handles.selected_points_listbox, 'Value');
@@ -230,15 +228,20 @@ function load_background_Callback(hObject, eventdata, handles)
         pipeline_data.bgChannelInd = get(handles.background_channel_menu,'Value');
         pipeline_data.bgChannel = contents{pipeline_data.bgChannelInd};
         pipeline_data.capBgChannel = str2double(get(handles.background_cap_display, 'String'));
-        % ' (?°?°)?   '
-        % ' (^_^)_/¯   '
         nums = [32, 40, 9583, 176, 9633, 176, 41, 9583, 32, 32, 32];
         set(handles.background_selection_indicator, 'String', [point_filename, newline, char(nums), channel]);
         
-        MIBIloadAndDisplayBackgroundChannel()
+        MIBIloadAndDisplayBackgroundChannel(get(handles.radiobutton1, 'Value'))
     catch
         % warning('Failed to load point');
     end
+
+% --- Executes on button press in load_background.
+function load_background_Callback(hObject, eventdata, handles)
+% hObject    handle to load_background (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    load_background(handles);
 
 % Background Removal Parameters ===========================================
 
@@ -775,3 +778,12 @@ function delete_eval_setting_Callback(hObject, eventdata, handles)
     catch
         % uh oh
     end
+
+
+% --- Executes on button press in radiobutton1.
+function radiobutton1_Callback(hObject, eventdata, handles)
+% hObject    handle to radiobutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of radiobutton1

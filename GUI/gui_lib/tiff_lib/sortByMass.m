@@ -16,9 +16,6 @@ function [counts, labels, tags] = sortByMass(counts, labels, tags, path)
             end
             
             [~, idx] = sort(masses);
-            counts = counts(:,:,idx);
-            labels = labels(idx);
-            tags = tags(idx);
         catch e
             error(e)
         end
@@ -35,18 +32,26 @@ function [counts, labels, tags] = sortByMass(counts, labels, tags, path)
             error(['Too many CSV files were found inside of ', panelPath]);
         end
         idx = zeros(size(tags));
-        disp(labels)
+        % disp(labels)
         for i=1:numel(labels)
             id = find(strcmp(labels, panel.Label{i}));
-            disp(['{',num2str(id),'} ', labels{i}])
+            % disp(['{',num2str(id),'} ', labels{i}])
             idx(i) = id;
         end
-        disp(idx);
-        disp(panel.Label);
-        disp(labels(idx));
-        counts = counts(:,:,idx);
-        labels = labels(idx);
-        tags = tags(idx);
+%         disp(idx);
+%         disp(panel.Label);
+%         disp(labels(idx));
+%         counts = counts(:,:,idx);
+%         labels = labels(idx);
+%         tags = tags(idx);
     end
+    
+    try
+        counts = counts(:,:,idx);
+    catch
+        % do nothing
+    end
+    labels = labels(idx);
+    tags = tags(idx);
 end
 

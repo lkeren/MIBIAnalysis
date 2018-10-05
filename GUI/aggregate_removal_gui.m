@@ -111,7 +111,7 @@ function manage_loaded_data(handles)
         wait = waitbar(0, ['Loading TIFF data...', newline, '"When I let go of what I am, I become what I might be." - Lao Tzu']);
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
-            [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
+            [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
             pipeline_data.dataNoNoise(loadPaths{i}) = data;
             pipeline_data.labels = data.labels;
             for j=1:numel(data.labels)

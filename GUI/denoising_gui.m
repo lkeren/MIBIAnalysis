@@ -121,7 +121,7 @@ function manage_loaded_data(handles)
         wait = waitbar(0, 'Calculating nearest neighbors');
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
-            [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
+            [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
             pipeline_data.dataNoBg(loadPaths{i}) = data;
             pipeline_data.labels = data.labels;
             for j=1:numel(data.labels)
