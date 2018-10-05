@@ -1,4 +1,4 @@
-function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
+function [labels] = load_tiff_folder_labels(dirname)
     fileList = dir(fullfile(dirname, '*.tiff'));
     if isempty(fileList)
         fileList = dir(fullfile(dirname, '*.tif'));
@@ -24,14 +24,10 @@ function [countsAllSFiltCRSum, labels] = load_tiff_folder(dirname)
     end
 
     if ~isempty(widths) && all(widths==widths(1)) && all(heights==heights(1))
-        countsAllSFiltCRSum = zeros(widths(1), heights(1), num_pages);
         labels = cell(size(panel));
         for i=1:num_pages
             str = strsplit(panel{i},' ('); % this is where we actually use the ordering
             labels{i} = str{1}; % extracts label
-            fname = fullfile(dirname, files{i});
-            info = infos{i};
-            countsAllSFiltCRSum(:,:,i) = imread(fname, 1, 'Info', info);
         end
     else
         error('TIFF pages are not all the same size');

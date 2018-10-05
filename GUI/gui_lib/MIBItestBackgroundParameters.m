@@ -1,4 +1,4 @@
-function [] = MIBItestBackgroundParameters()
+function [] = MIBItestBackgroundParameters(reuseFigure)
     global pipeline_data;
     countsAllSFiltCRSum = pipeline_data.rawData(pipeline_data.background_point).countsAllSFiltCRSum;
     labels = pipeline_data.rawData(pipeline_data.background_point).labels;
@@ -13,8 +13,8 @@ function [] = MIBItestBackgroundParameters()
     titletext = strrep(titletext, '_', '\_');
     
     [~,bgChannelInd] = ismember(bgChannel,labels);
-    mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,1, titletext);
-    countsNoBg = MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
+    mask = MIBI_get_mask(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,t,gausRad,1, titletext, reuseFigure);
+    countsNoBg = gui_MibiRemoveBackgroundByMaskAllChannels(countsAllSFiltCRSum,mask,removeVal);
     pipeline_data.countsNoBg = countsNoBg;
 end
 

@@ -111,7 +111,7 @@ function manage_loaded_data(handles)
         wait = waitbar(0, ['Loading TIFF data...', newline, '"When I let go of what I am, I become what I might be." - Lao Tzu']);
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
-            [data.countsAllSFiltCRSum, data.labels] = load_tiff_data(loadPaths{i});
+            [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
             pipeline_data.dataNoNoise(loadPaths{i}) = data;
             pipeline_data.labels = data.labels;
             for j=1:numel(data.labels)
@@ -301,7 +301,7 @@ function plotAggRmParams(handles)
         else
             gausFlag = 1;
         end
-        countsNoNoiseNoAgg = MibiFilterAggregates(countsNoNoise.countsAllSFiltCRSum(:,:,plotChannelInd),radius,threshold,gausFlag);
+        countsNoNoiseNoAgg = gui_MibiFilterAggregates(countsNoNoise.countsAllSFiltCRSum(:,:,plotChannelInd),radius,threshold,gausFlag);
         size(countsNoNoiseNoAgg);
         
         currdata = countsNoNoiseNoAgg;
@@ -570,14 +570,14 @@ function remove_aggregates_button_Callback(hObject, eventdata, handles)
                     gausFlag = 1;
                 end
                 
-                countsNoNoiseNoAgg(:,:,j) = MibiFilterAggregates(countsNoNoise(:,:,j),radius,threshold,gausFlag);
+                countsNoNoiseNoAgg(:,:,j) = gui_MibiFilterAggregates(countsNoNoise(:,:,j),radius,threshold,gausFlag);
             end
             [savePath, file, ~] = fileparts(pipeline_data.corePath{i});
             [savePath, ~, ~] = fileparts(savePath);
             savePath = [savePath, filesep, 'NoAggData'];
 %             path = [cleanDataPath, filesep, file];
 %             mkdir(path);
-            MibiSaveTifs([savePath,filesep,file,'_TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
+            gui_MibiSaveTifs([savePath,filesep,file,'_TIFsNoAgg', filesep], countsNoNoiseNoAgg, pipeline_data.labels);
             save([savePath, filesep,file,'_dataNoAgg.mat'],'countsNoNoiseNoAgg');
             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Removing aggregates...');
         end
