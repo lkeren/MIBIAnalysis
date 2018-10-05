@@ -21,8 +21,8 @@ function [] = MIBIevaluateBackgroundParameters(points)
         point_name = points{i};
         point_name = strrep(point_name, '_', '\_');
         
-        img1 = gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - before']); plotbrowser on;
-        img2 = gui_MibiPlotDataAndCap(countsNoBg(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - Params ', pipeline_data.all_param_TITLEstring, ' - after']); plotbrowser on;
+        img1 = gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - before'], 'Before'); plotbrowser on;
+        img2 = gui_MibiPlotDataAndCap(countsNoBg(:,:,evalChannelInd),capEvalChannel,[point_name, newline, evalChannel , ' - Params ', pipeline_data.all_param_TITLEstring, ' - after'], 'After'); plotbrowser on;
         linkaxes([img1, img2]);
     end
 end

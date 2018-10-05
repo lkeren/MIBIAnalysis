@@ -1,14 +1,12 @@
-function [counts, labels, tags] = loadTIFF_multi(path)
+function [labels, tags] = loadLabels_multi(path)
     % expects path to specify a folder
     tiff = Tiff(path);
-    counts = [];
     labels = {};
     tags = {};
     
     last = 0;
     while ~last
         index = currentDirectory(tiff);
-        counts(:,:,index) = read(tiff);
         tags{index} = getTagStruct(tiff);
         try
             desc = json.load(tags{index}.ImageDescription);
@@ -28,3 +26,4 @@ function [counts, labels, tags] = loadTIFF_multi(path)
         end
     end
 end
+

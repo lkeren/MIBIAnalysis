@@ -1,4 +1,4 @@
-function [counts, labels, tags] = loadTIFF_folder(path)
+function [labels, tags] = loadLabels_folder(path)
     % First we look for all TIFF files in the given path
     fileList = [dir(fullfile(path, '*.tiff'));...
                 dir(fullfile(path, '*.tif'))];
@@ -14,7 +14,6 @@ function [counts, labels, tags] = loadTIFF_folder(path)
     tags = {};
     for index=1:num_pages
         tiff = Tiff([path, filesep, files{index}]);
-        counts(:,:,index) = read(tiff);
         tags{index} = getTagStruct(tiff);
         try
             desc = json.load(tags{index}.ImageDescription);
