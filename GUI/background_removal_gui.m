@@ -96,9 +96,13 @@ function manage_loaded_data(handles)
 % goal is to look at the corePath variable, check that all raw data is
 % loaded, and if it's not, load it. If there are extra keys in
 % pipeline_data.rawData, we should delete them.
+    set(handles.selected_points_listbox, 'Value', 1);
     global pipeline_data;
     rawDataKeys = keys(pipeline_data.rawData); % data that's already loaded
     corePath = pipeline_data.corePath; % data that should be loaded
+    if numel(corePath)==0
+        % set(handles.selected_points_listbox, 'Value', 1)
+    end
     deletePaths = setdiff(rawDataKeys, corePath); % data that needs to be deleted
     loadPaths = setdiff(corePath, rawDataKeys); % datat hat needs to be loaded
     for i=1:numel(deletePaths) % remove data we don't want anymore
@@ -106,7 +110,8 @@ function manage_loaded_data(handles)
     end
     if numel(loadPaths)>0
         set(handles.figure1, 'pointer', 'watch');
-        % drawnow
+        drawnow
+        
         waitfig = waitbar(0, 'Loading TIFF data...');
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
