@@ -234,7 +234,8 @@ function load_background(handles)
         pipeline_data.bgChannel = contents{pipeline_data.bgChannelInd};
         pipeline_data.capBgChannel = str2double(get(handles.background_cap_display, 'String'));
         nums = [32, 40, 9583, 176, 9633, 176, 41, 9583, 32, 32, 32];
-        set(handles.background_selection_indicator, 'String', [point_filename, newline, char(nums), channel]);
+        % set(handles.background_selection_indicator, 'String', [point_filename, newline, char(nums), channel]);
+        set(handles.background_selection_indicator, 'String', [char(nums), channel]);
         
         MIBIloadAndDisplayBackgroundChannel(get(handles.radiobutton1, 'Value'))
     catch

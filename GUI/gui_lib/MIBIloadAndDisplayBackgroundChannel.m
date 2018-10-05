@@ -10,7 +10,7 @@ function [] = MIBIloadAndDisplayBackgroundChannel(reuseFigure)
     point_name = pipeline_data.background_point;
     point_name = strrep(point_name, '_', '\_');
     if ~reuseFigure
-        gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name]); plotbrowser on;
+        gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name], 'Background'); plotbrowser on;
     else
         try
             existAndValid = isvalid(pipeline_data.backgroundChannelFigure);
@@ -20,7 +20,7 @@ function [] = MIBIloadAndDisplayBackgroundChannel(reuseFigure)
         if ~existAndValid
             pipeline_data.backgroundChannelFigure = figure(); plotbrowser on
         end
-        gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name], pipeline_data.backgroundChannelFigure); plotbrowser on;
+        gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name], 'Background', pipeline_data.backgroundChannelFigure); plotbrowser on;
     end
     
 end

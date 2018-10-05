@@ -32,7 +32,7 @@ bw = mat2gray(rawMaskDataG);
 level = graythresh(bw);
 if plot
     if ~reuseFigure
-        pipeline_data.maskHistFig = figure();
+        pipeline_data.maskHistFig = figure('Name', 'Histogram');
     else
         try
             existAndValid = isvalid(pipeline_data.maskHistFig);
@@ -40,7 +40,7 @@ if plot
             existAndValid = 0;
         end
         if ~existAndValid
-            pipeline_data.maskHistFig = figure();
+            pipeline_data.maskHistFig = figure('Name', 'Histogram');
         else
             figure(pipeline_data.maskHistFig);
         end
@@ -56,7 +56,7 @@ end
 mask = imbinarize(bw,t);
 if plot
     if ~reuseFigure
-        pipeline_data.maskFig = figure();
+        pipeline_data.maskFig = figure('Name', 'Mask');
     else
         try
             existAndValid = isvalid(pipeline_data.maskFig);
@@ -64,7 +64,7 @@ if plot
             existAndValid = 0;
         end
         if ~existAndValid
-            pipeline_data.maskFig = figure();
+            pipeline_data.maskFig = figure('Name', 'Mask');
         else
             figure(pipeline_data.maskFig);
         end
