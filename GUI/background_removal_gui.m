@@ -242,13 +242,6 @@ function load_background(handles)
         % warning('Failed to load point');
     end
 
-% --- Executes on button press in load_background.
-function load_background_Callback(hObject, eventdata, handles)
-% hObject    handle to load_background (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    load_background(handles);
-
 % Background Removal Parameters ===========================================
 
 function gaussian_radius_bkg_Callback(hObject, eventdata, handles)
