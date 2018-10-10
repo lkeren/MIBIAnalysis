@@ -23,6 +23,7 @@ function [counts, labels, tags] = sortByMass(counts, labels, tags, path)
         [folder, ~, ~] = fileparts(path); % remember that path should be to a POINT folder
         panelPath = [folder, filesep, 'panel'];
         csvList = dir(fullfile(panelPath, '*.csv'));
+        csvList(find(cellfun(@isHiddenName, {csvList.name}))) = [];
         if numel(csvList)==1
             filepath = [csvList.folder, filesep, csvList.name];
             panel = dataset('File', filepath, 'Delimiter', ',');

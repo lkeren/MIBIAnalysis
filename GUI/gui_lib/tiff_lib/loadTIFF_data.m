@@ -35,7 +35,7 @@ function [counts, labels, tags] = loadTIFF_data(path, varargin)
         counts = [];
         labels = {};
         tags = {};
-        warning('Path provided is not to a folder or TIFF file, no TIFF files were loaded');
+        error('Path provided is not to a folder or TIFF file, no TIFF files were loaded');
     end
     
     try

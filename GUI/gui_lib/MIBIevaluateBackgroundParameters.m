@@ -2,8 +2,9 @@ function [] = MIBIevaluateBackgroundParameters(points)
     global pipeline_data;
     
     for i=1:numel(points)
-        countsAllSFiltCRSum = pipeline_data.rawData(points{i}).countsAllSFiltCRSum;
-        labels = pipeline_data.rawData(points{i}).labels;
+        point = pipeline_data.points.get('name', points{i});
+        countsAllSFiltCRSum = point.counts;
+        labels = point.labels;
         
         evalChannel = pipeline_data.evalChannel;
         bgChannel = pipeline_data.bgChannel;

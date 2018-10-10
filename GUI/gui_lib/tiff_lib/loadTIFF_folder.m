@@ -3,7 +3,7 @@ function [counts, labels, tags] = loadTIFF_folder(path)
     fileList = [dir(fullfile(path, '*.tiff'));...
                 dir(fullfile(path, '*.tif'))];
     if isempty(fileList)
-        warning(['No TIFF files found in ', path]);
+        error(['No TIFF files found in ', path]);
     end
     files = {fileList.name}';
     rmIdx = [find(strcmp(files, 'totalIon.tif')), find(strcmp(files, 'totalIon.tiff'))];

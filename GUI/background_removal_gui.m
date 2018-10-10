@@ -63,7 +63,7 @@ pipeline_data.bgChannel = '181';
 pipeline_data.removingBackground = false;
 pipeline_data.rawData = containers.Map;
 pipeline_data.corePath = {};
-pipeline_data.points = {};
+pipeline_data.points = PointManager();
 pipeline_data.background_point = '';
 % Choose default command line output for background_removal_gui
 handles.output = hObject;
@@ -115,8 +115,9 @@ function manage_loaded_data(handles)
         waitfig = waitbar(0, 'Loading TIFF data...');
         for i=1:numel(loadPaths) % load unloaded data
             data = struct();
-            [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
+            % [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
             % pipeline_data.points{end+1} = Point(loadPaths{i});
+            point = Point(loadPaths{i}, 3);
             pipeline_data.rawData(loadPaths{i}) = data;
             waitbar(i/numel(loadPaths), waitfig, 'Loading TIFF data...');
         end
@@ -130,62 +131,62 @@ function manage_loaded_data(handles)
 function add_point_Callback(hObject, eventdata, handles)
     global pipeline_data
     pointdiles = uigetdiles(pipeline_data.defaultPath);
-    pointdiles = setdiff(pointdiles, pipeline_data.corePath); % this should only add paths that haven't already been added
     if ~isempty(pointdiles)
-        [filepath, name, ext] = fileparts(pointdiles{1});
-        pipeline_data.defaultPath = filepath;
-        curList = get(handles.selected_points_listbox, 'String');
-        curList = cat(1,curList, pointdiles');
-        set(handles.selected_points_listbox, 'String', curList);
-        set(handles.eval_point_menu, 'String', curList);
-
-        contents = cellstr(get(handles.selected_points_listbox, 'String'));
-        % extract all labels and make sure they match
-        labelSets = cell(size(contents));
-        for i=1:numel(labelSets)
-            labelSets{i} = getTIFFLabels(contents{i});
-        end
-        if numel(labelSets)==1 || isequal(labelSets{:}) % all the sets of labels are equal
-            set(handles.background_channel_menu, 'String', labelSets{1});
-            set(handles.eval_channel_menu, 'String', labelSets{1});
-%             chan = get(handles.background_channel_menu, 'Value');
-%             set(handles.background_channel_menu, 'Value', 1);
-        end
-        pipeline_data.corePath = contents;
-        manage_loaded_data(handles);
+        pipeline_data.points.add(pointdiles);
+        set(handles.selected_points_listbox, 'String', pipeline_data.points.getNames());
+        set(handles.eval_point_menu, 'String', pipeline_data.points.getNames());
+        set(handles.background_channel_menu, 'String', pipeline_data.points.labels());
+        set(handles.eval_channel_menu, 'String', pipeline_data.points.labels())
     end
+    fix_menus_and_lists(handles);
 
+    
+function fix_handle(handle)
+    try
+        if isempty(get(handle, 'String'))
+            set(handle, 'String', {''});
+            set(handle, 'Value', 1)
+        end
+        if ~isnumeric(get(handle, 'Value'))
+            set(handle, 'Value', 1)
+        end
+    catch
+        
+    end
+    
+    
+function fix_menus_and_lists(handles)
+    fix_handle(handles.selected_points_listbox);
+    fix_handle(handles.background_channel_menu);
+    fix_handle(handles.eval_point_menu);
+    fix_handle(handles.eval_channel_menu);
+    
 % --- Executes on button press in remove_point.
 function remove_point_Callback(hObject, eventdata, handles)
-    try
-        global pipeline_data;
-        pointIndex = get(handles.selected_points_listbox, 'Value');
-        pointList = get(handles.selected_points_listbox, 'String');
-        removedPoint = pointList{pointIndex};
-        if strcmp(removedPoint, pipeline_data.background_point) % are we removing a point we've loaded as background?
+    global pipeline_data;
+    pointIndex = get(handles.selected_points_listbox, 'Value');
+    pointList = get(handles.selected_points_listbox, 'String');
+    removedPoint = pointList{pointIndex};
+    if ~isempty(removedPoint)
+        pipeline_data.points.remove('name', removedPoint);
+        set(handles.selected_points_listbox, 'String', pipeline_data.points.getNames());
+        set(handles.eval_point_menu, 'String', pipeline_data.points.getNames());
+        set(handles.background_channel_menu, 'String', pipeline_data.points.labels());
+        set(handles.eval_channel_menu, 'String', pipeline_data.points.labels())
+
+        % we may not need this anymore, only used for displaying point
+        % identity?
+        if strcmp(removedPoint, pipeline_data.background_point)
             set(handles.background_selection_indicator, 'String', '');
-        end
-        if numel(pointList) ~= 0
-            pointList(pointIndex) = [];
-        end
-        set(handles.selected_points_listbox, 'String', pointList);
-        set(handles.eval_point_menu, 'String', pointList);
-        if numel(pointList) == 0
-            set(handles.background_channel_menu, 'String', ' ');
-            set(handles.background_channel_menu, 'Value', 1);
-            set(handles.eval_channel_menu, 'String', ' ');
-            set(handles.eval_channel_menu, 'Value', 1);
         end
         if pointIndex~=1
             set(handles.selected_points_listbox, 'Value', pointIndex-1);
         else
             set(handles.selected_points_listbox, 'Value', 1);
         end
-        pipeline_data.corePath = pointList;
-        manage_loaded_data(handles);
-    catch
-        % probably no points to remove
     end
+    fix_menus_and_lists(handles);
+    
 
 % --- Executes on selection change in selected_points_listbox.
 function selected_points_listbox_Callback(hObject, eventdata, handles)
@@ -221,24 +222,27 @@ function background_channel_menu_CreateFcn(hObject, eventdata, handles)
 function load_background(handles)
     try
         global pipeline_data;
-        point_index = get(handles.selected_points_listbox, 'Value');
         contents = cellstr(get(handles.selected_points_listbox, 'String'));
-        point_filename = contents{point_index};
-        pipeline_data.background_point = point_filename;
-        channel_index = get(handles.background_channel_menu, 'Value');
-        contents = cellstr(get(handles.background_channel_menu, 'String'));
-        channel = contents{channel_index};
+        point_index = get(handles.selected_points_listbox, 'Value');
+        point_name = contents{point_index};
+        if ~isempty(point_name)
+            pipeline_data.background_point = point_name;
+            channel_index = get(handles.background_channel_menu, 'Value');
+            contents = cellstr(get(handles.background_channel_menu, 'String'));
+            channel = contents{channel_index};
 
-        contents = cellstr(get(handles.background_channel_menu, 'String'));
-        pipeline_data.bgChannelInd = get(handles.background_channel_menu,'Value');
-        pipeline_data.bgChannel = contents{pipeline_data.bgChannelInd};
-        pipeline_data.capBgChannel = str2double(get(handles.background_cap_display, 'String'));
-        nums = [32, 40, 9583, 176, 9633, 176, 41, 9583, 32, 32, 32];
-        % set(handles.background_selection_indicator, 'String', [point_filename, newline, char(nums), channel]);
-        set(handles.background_selection_indicator, 'String', [char(nums), channel]);
-        
-        MIBIloadAndDisplayBackgroundChannel(get(handles.radiobutton1, 'Value'))
-    catch
+            contents = cellstr(get(handles.background_channel_menu, 'String'));
+            pipeline_data.bgChannelInd = get(handles.background_channel_menu,'Value');
+            pipeline_data.bgChannel = contents{pipeline_data.bgChannelInd};
+            pipeline_data.capBgChannel = str2double(get(handles.background_cap_display, 'String'));
+            nums = [32, 40, 9583, 176, 9633, 176, 41, 9583, 32, 32, 32];
+            % set(handles.background_selection_indicator, 'String', [point_filename, newline, char(nums), channel]);
+            set(handles.background_selection_indicator, 'String', [char(nums), channel]);
+
+            MIBIloadAndDisplayBackgroundChannel(get(handles.radiobutton1, 'Value'))
+        end
+    catch err
+        throw(err)
         % warning('Failed to load point');
     end
 
@@ -339,9 +343,9 @@ function rm_val_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
     global pipeline_data;
     try
         pipeline_data.removeVal = str2double(get(hObject,'String'));
@@ -646,8 +650,8 @@ function evaluate_point_Callback(hObject, eventdata, handles)
             set(handles.eval_settings_listbox, 'String', curList);
         end
         set(handles.remove_background, 'Enable', 'on');
-    catch e
-        disp(e);
+    catch err
+        set(handles.figure1, 'pointer', 'arrow');
         gui_warning('No point selected');
     end
 
@@ -683,7 +687,8 @@ function evaluate_all_points_Callback(hObject, eventdata, handles)
         end
         set(handles.remove_background, 'Enable', 'on');
     catch
-        % do nothing
+        
+        set(handles.figure1, 'pointer', 'arrow');
     end
 
 % --- Executes on button press in remove_background.

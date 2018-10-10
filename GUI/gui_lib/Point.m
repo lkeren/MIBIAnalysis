@@ -7,28 +7,33 @@ classdef Point
         point_path
         counts
         labels
+        tags
     end
     
     methods
-        function obj = Point(point_path)
+        function obj = Point(point_path, len)
             obj.point_path = point_path;
-            [obj.counts, obj.labels] = loadTIFF_data(point_path);
+            [obj.counts, obj.labels, obj.tags] = loadTIFF_data(point_path);
             [path, name, ~] = fileparts(point_path);
             name = [path, filesep, name];
-            name = strsplit(path, filesep);
+            name = strsplit(name, filesep);
             try
-                name = name((end-3):end);
+                name = name((end-len+1):end);
             catch
                 % do nothing
             end
             obj.name = strjoin(name, filesep);
+            obj.checkAllLabelsUnique();
         end
         
-%         function outputArg = method1(obj,inputArg)
-%             %METHOD1 Summary of this method goes here
-%             %   Detailed explanation goes here
-%             outputArg = obj.Property1 + inputArg;
-%         end
+        function check = checkAllLabelsUnique(obj)
+            if numel(unique(obj.labels))==numel(obj.labels)
+                check = true;
+            else
+                check = false;
+                warning('NOT ALL LABELS ARE UNIQUE')
+            end
+        end
     end
 end
 

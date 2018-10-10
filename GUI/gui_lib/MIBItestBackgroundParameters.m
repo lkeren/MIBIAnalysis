@@ -1,7 +1,8 @@
 function [] = MIBItestBackgroundParameters(reuseFigure)
     global pipeline_data;
-    countsAllSFiltCRSum = pipeline_data.rawData(pipeline_data.background_point).countsAllSFiltCRSum;
-    labels = pipeline_data.rawData(pipeline_data.background_point).labels;
+    point = pipeline_data.points.get('name', pipeline_data.background_point);
+    countsAllSFiltCRSum = point.counts;
+    labels = point.labels;
     
     capBgChannel = pipeline_data.capBgChannel;
     t = pipeline_data.t;
