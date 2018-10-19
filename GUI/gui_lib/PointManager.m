@@ -1,4 +1,4 @@
-classdef PointManager
+classdef PointManager < handle
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -6,6 +6,10 @@ classdef PointManager
         namesToPaths % map from names to paths
         pathsToNames % map from paths to names
         pathsToPoints % map from paths to Points
+        % for denoising
+        denoiseParams % cell array of denoising params
+        channel_load_status
+        point_load_status
     end
     
     methods
@@ -15,6 +19,8 @@ classdef PointManager
             obj.namesToPaths = containers.Map;
             obj.pathsToNames = containers.Map;
             obj.pathsToPoints = containers.Map;
+            
+            obj.denoiseParams = {};
         end
         
         % given a path to a Point resource, adds a Point object
@@ -48,6 +54,7 @@ classdef PointManager
             if ~obj.checkLabelSetEquality()
                 warning('Not all loaded points have the same labels!')
             end
+            obj.initDenoiseParams();
         end
         
         function obj = remove(obj, argType, arg)
@@ -75,6 +82,9 @@ classdef PointManager
                 end
             else
                 error('Invalid argType');
+            end
+            if isempty(keys(obj.pathsToPoints))
+                obj.denoiseParams = {};
             end
         end
         
@@ -104,6 +114,8 @@ classdef PointManager
         function point = get(obj, argType, arg)
             if strcmp(argType, 'name')
                 try
+                    arg = strsplit(tabSplit(arg), char(8197));
+                    arg = arg{1};
                     path = obj.namesToPaths(arg);
                     point = obj.pathsToPoints(path);
                 catch
@@ -130,6 +142,48 @@ classdef PointManager
                 names = natsortfiles(names);
             catch err
                 names = {};
+            end
+        end
+        
+        function obj = togglePointStatus(obj, pointName)
+            point_path = obj.namesToPaths(pointName);
+            point = obj.pathsToPoints(point_path);
+            point.status = ~point.status;
+            obj.pathsToPoints(point_path) = point;
+        end
+        
+        function obj = setPointStatus(obj, pointName, status)
+            point_path = obj.namesToPaths(pointName);
+            point = obj.pathsToPoints(point_path);
+            point.status = status;
+            obj.pathsToPoints(point_path) = point;
+        end
+        
+        function obj = setPointLoaded(obj, pointName, loaded)
+            point_path = obj.namesToPaths(pointName);
+            point = obj.pathsToPoints(point_path);
+            point.loaded = loaded;
+            obj.pathsToPoints(point_path) = point;
+        end
+        
+        function point_text = getPointText(obj)
+            names = obj.getNames();
+            point_text = cell(size(names));
+            for i=1:numel(names)
+                status = obj.pathsToPoints(obj.namesToPaths(names{i})).status;
+                loaded = obj.pathsToPoints(obj.namesToPaths(names{i})).loaded;
+                if status==0 && loaded==0
+                            mark = '.';
+                    elseif status==0 && loaded==1
+                        mark = 'x';
+                    elseif status==1 && loaded==0
+                        mark = char(9633);
+                    elseif status==1 && loaded==1
+                        mark = char(9632);
+                    else
+                        mark = '?';
+                end
+                point_text{i} = tabJoin({names{i}, mark}, 75);
             end
         end
         
@@ -160,6 +214,135 @@ classdef PointManager
                 path = obj.namesToPaths(name);
             else
                 err0r(['Point ', name, ' not loaded, no path found'])
+            end
+        end
+        
+        function obj = initDenoiseParams(obj)
+            if isempty(obj.denoiseParams)
+                labels = obj.labels();
+                max_name_length = 10;
+                for i=1:numel(labels)
+                    params = struct();
+                    params.threshold = 3.5;
+                    params.k_value = 25;
+                    params.label = labels{i};
+                    params.status = 0;
+                    params.loaded = 0;
+                    params.display_name = labels{i}(1:(min(max_name_length, end)));
+                    obj.denoiseParams{i} = params;
+                end
+            end
+        end
+        
+        function obj = setDenoiseParam(obj, label_index, param, varargin)
+            if strcmp(param, 'threshold')
+                obj.denoiseParams{label_index}.threshold = varargin{1};
+            elseif strcmp(param, 'k_value')
+                obj.denoiseParams{label_index}.k_value = varargin{1};
+            elseif strcmp(param, 'status')
+                if numel(varargin)==0
+                    obj.denoiseParams{label_index}.status = ~obj.denoiseParams{label_index}.status;
+                else
+                    obj.denoiseParams{label_index}.status = varargin{1};
+                end
+            elseif strcmp(param, 'loaded')
+                obj.denoiseParams{label_index}.loaded = varargin{1};
+            end
+        end
+        
+        function channel_param = getDenoiseParam(obj, label_index)
+            channel_param = obj.denoiseParams{label_index};
+        end
+        
+        function denoiseParamsText = getDenoiseText(obj, varargin)
+            if isempty(varargin)
+                if ~isempty(obj.denoiseParams)
+                    denoiseParamsText = cell(size(obj.labels()));
+                    for i=1:numel(obj.labels())
+                        params = obj.denoiseParams{i};
+                        
+                        label = params.display_name;
+                        threshold = params.threshold;
+                        k_val = params.k_value;
+                        if params.status==0 && params.loaded==0
+                            mark = '.';
+                        elseif params.status==0 && params.loaded==1
+                            mark = 'x';
+                        elseif params.status==1 && params.loaded==0
+                            mark = char(9633);
+                        elseif params.status==1 && params.loaded==1
+                            mark = char(9632);
+                        elseif params.status==-1
+                            mark = '!';
+                        else
+                            mark = '?';
+                        end
+                        denoiseParamsText{i} = tabJoin({label, num2str(threshold), num2str(k_val), mark}, 15);
+                    end
+                else
+                    denoiseParamsText = {};
+                end
+            else
+                point_name = varargin{1};
+                
+            end
+        end
+        
+        function obj = knn(obj, point_name, label, k_value)
+            point_path = obj.namesToPaths(point_name);
+            point = obj.pathsToPoints(point_path);
+            point.knn(label, k_value);
+            point.loaded = 1;
+            obj.pathsToPoints(point_path) = point;
+        end
+        
+        function point_names = getSelectedPointNames(obj)
+            all_point_paths = keys(obj.pathsToPoints);
+            point_names = {};
+            for i=1:numel(all_point_paths)
+                if obj.pathsToPoints(all_point_paths{i}).status == 1
+                    point_names{end+1} = obj.pathsToPoints(all_point_paths{i}).name;
+                end
+            end
+        end
+        
+        function label_indices = getSelectedLabelIndices(obj)
+            label_indices = [];
+            for i=1:numel(obj.labels())
+                if obj.denoiseParams{i}.status == 1
+                    label_indices(end+1) = i;
+                end
+            end
+        end
+        
+        function obj = flush_data(obj)
+            flush_indices = [];
+            for i=1:numel(obj.denoiseParams)
+                if obj.denoiseParams{i}.status==0 && obj.denoiseParams{i}.loaded==1
+                    flush_indices(end+1) = i;
+                    obj.setDenoiseParam(i, 'loaded', 0);
+                end
+            end
+            % first we look through all points with status==0
+            point_paths = keys(obj.pathsToPoints);
+            for i=1:numel(point_paths)
+                point = obj.pathsToPoints(point_paths{i});
+                if point.status==0 && point.loaded==1
+                    point.flush_all_data();
+                    point.loaded = 0;
+                    obj.pathsToPoints(point_paths{i}) = point;
+                elseif point.status==1
+                    point.flush_labels(flush_indices);
+                    obj.pathsToPoints(point_paths{i}) = point;
+                end
+            end
+        end
+        
+        function save_no_background(obj)
+            point_paths = keys(obj.pathsToPoints);
+            for i=1:numel(point_paths)
+                point = obj.pathsToPoints(point_paths{i});
+                point.save_no_background();
             end
         end
     end

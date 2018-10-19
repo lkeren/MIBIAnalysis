@@ -61,8 +61,6 @@ global pipeline_data;
 pipeline_data = struct();
 pipeline_data.bgChannel = '181';
 pipeline_data.removingBackground = false;
-pipeline_data.rawData = containers.Map;
-pipeline_data.corePath = {};
 pipeline_data.points = PointManager();
 pipeline_data.background_point = '';
 % Choose default command line output for background_removal_gui
@@ -92,44 +90,9 @@ varargout{1} = handles.output;
 
 % Manage Points and Select Background Channel =============================
 
-function manage_loaded_data(handles)
-% goal is to look at the corePath variable, check that all raw data is
-% loaded, and if it's not, load it. If there are extra keys in
-% pipeline_data.rawData, we should delete them.
-    set(handles.selected_points_listbox, 'Value', 1);
-    global pipeline_data;
-    rawDataKeys = keys(pipeline_data.rawData); % data that's already loaded
-    corePath = pipeline_data.corePath; % data that should be loaded
-    if numel(corePath)==0
-        % set(handles.selected_points_listbox, 'Value', 1)
-    end
-    deletePaths = setdiff(rawDataKeys, corePath); % data that needs to be deleted
-    loadPaths = setdiff(corePath, rawDataKeys); % datat hat needs to be loaded
-    for i=1:numel(deletePaths) % remove data we don't want anymore
-        remove(pipeline_data.rawData, deletePaths{i});
-    end
-    if numel(loadPaths)>0
-        set(handles.figure1, 'pointer', 'watch');
-        drawnow
-        
-        waitfig = waitbar(0, 'Loading TIFF data...');
-        for i=1:numel(loadPaths) % load unloaded data
-            data = struct();
-            % [data.countsAllSFiltCRSum, data.labels] = loadTIFF_data(loadPaths{i});
-            % pipeline_data.points{end+1} = Point(loadPaths{i});
-            point = Point(loadPaths{i}, 3);
-            pipeline_data.rawData(loadPaths{i}) = data;
-            waitbar(i/numel(loadPaths), waitfig, 'Loading TIFF data...');
-        end
-        close(waitfig);
-        set(handles.figure1, 'pointer', 'arrow');
-    end
-    
-
-
 % --- Executes on button press in add_point.
 function add_point_Callback(hObject, eventdata, handles)
-    global pipeline_data
+    global pipeline_data;
     pointdiles = uigetdiles(pipeline_data.defaultPath);
     if ~isempty(pointdiles)
         pipeline_data.points.add(pointdiles);
@@ -139,6 +102,7 @@ function add_point_Callback(hObject, eventdata, handles)
         set(handles.eval_channel_menu, 'String', pipeline_data.points.labels())
     end
     fix_menus_and_lists(handles);
+    load_background(handles);
 
     
 function fix_handle(handle)
@@ -698,12 +662,14 @@ function remove_background_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     set(handles.figure1, 'pointer', 'watch');
     drawnow
-    pathToLog = uigetdir();
-    if pathToLog~=0
-        set(hObject, 'Enable', 'off');
-        MIBI_remove_background(pathToLog);
-        set(hObject, 'Enable', 'on');
-    end
+    global pipeline_data;
+    pipeline_data.points.save_no_background();
+%     pathToLog = uigetdir();
+%     if pathToLog~=0
+%         set(hObject, 'Enable', 'off');
+%         MIBI_remove_background(pathToLog);
+%         set(hObject, 'Enable', 'on');
+%     end
     set(handles.figure1, 'pointer', 'arrow');
 
 

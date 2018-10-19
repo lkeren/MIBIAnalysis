@@ -21,6 +21,7 @@ function [counts, labels, tags] = sortByMass(counts, labels, tags, path)
         end
     else % we have data from Leeat's extractor, so assume path is usefull
         [folder, ~, ~] = fileparts(path); % remember that path should be to a POINT folder
+        [folder, ~, ~] = fileparts(folder);
         panelPath = [folder, filesep, 'panel'];
         csvList = dir(fullfile(panelPath, '*.csv'));
         csvList(find(cellfun(@isHiddenName, {csvList.name}))) = [];

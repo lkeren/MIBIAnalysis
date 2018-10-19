@@ -1,7 +1,7 @@
 function saveTIFF_folder(counts, labels, tags, path)
     rmkdir(path);
     for index=1:numel(labels)
-        tiff = Tiff([path, filesep, labels{index}, '.tiff'], 'w');
+        tiff = Tiff([path, filesep, labels{index}, '.tif'], 'w');
         setTag(tiff, tags{index});
         setTag(tiff, 'Compression', Tiff.Compression.Deflate);
         if tags{index}.BitsPerSample==16
