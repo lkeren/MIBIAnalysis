@@ -5,9 +5,9 @@ global pipeline_data
 currdata = data;
 currdata(currdata>cap) = cap;
 if numel(varargin)==1
-    figure(varargin{1})
+    sfigure(varargin{1});
 else
-    pipeline_data.backgroundChannelFigure = figure('Name', figureTitle);
+    pipeline_data.backgroundChannelFigure = sfigure(figure('Name', figureTitle));
 end
 imagesc(currdata);
 title(titlestr);

@@ -10,6 +10,8 @@ classdef PointManager < handle
         denoiseParams % cell array of denoising params
         channel_load_status
         point_load_status
+        % for aggregate removal
+        aggRmParams
     end
     
     methods
@@ -21,6 +23,7 @@ classdef PointManager < handle
             obj.pathsToPoints = containers.Map;
             
             obj.denoiseParams = {};
+            obj.aggRmParams = {};
         end
         
         % given a path to a Point resource, adds a Point object
@@ -55,6 +58,7 @@ classdef PointManager < handle
                 warning('Not all loaded points have the same labels!')
             end
             obj.initDenoiseParams();
+            obj.initAggRmParams();
         end
         
         function obj = remove(obj, argType, arg)
@@ -234,6 +238,44 @@ classdef PointManager < handle
             end
         end
         
+        function obj = initAggRmParams(obj)
+            if isempty(obj.aggRmParams)
+                labels = obj.labels();
+                max_name_length = 10;
+                for i=1:numel(labels)
+                    params = struct();
+                    params.threshold = 100;
+                    params.radius = 1;
+                    params.capImage = 5;
+                    params.label = labels{i};
+                    params.display_name = labels{i}(1:(min(max_name_length, end)));
+                    obj.aggRmParams{i} = params;
+                end
+            end
+        end
+        
+        function channel_param = getAggRmParam(obj, label_index)
+            channel_param = obj.aggRmParams{label_index};
+        end
+        
+        function aggRmParamsText = getAggRmText(obj, varargin)
+            if isempty(varargin)
+                if ~isempty(obj.aggRmParams)
+                    aggRmParamsText = cell(size(obj.labels));
+                    for i=1:numel(obj.labels())
+                        params = obj.aggRmParams{i};
+                        label = params.display_name;
+                        threshold = params.threshold;
+                        radius = params.radius;
+                        capImage = params.capImage;
+                        aggRmParamsText{i} = tabJoin({label, num2str(threshold), num2str(radius), num2str(capImage)}, 15);
+                    end
+                else
+                    aggRmParamsText = {};
+                end
+            end
+        end
+        
         function obj = setDenoiseParam(obj, label_index, param, varargin)
             if strcmp(param, 'threshold')
                 obj.denoiseParams{label_index}.threshold = varargin{1};
@@ -247,6 +289,18 @@ classdef PointManager < handle
                 end
             elseif strcmp(param, 'loaded')
                 obj.denoiseParams{label_index}.loaded = varargin{1};
+            end
+        end
+        
+        function obj = setAggRmParam(obj, label_index, param, varargin)
+            if strcmp(param, 'threshold')
+                obj.aggRmParams{label_index}.threshold = varargin{1};
+            elseif strcmp(param, 'radius')
+                obj.aggRmParams{label_index}.radius = varargin{1};
+            elseif strcmp(param, 'capImage')
+                obj.aggRmParams{label_index}.capImage = varargin{1};
+            else
+                % what did you do you monster
             end
         end
         
@@ -339,10 +393,106 @@ classdef PointManager < handle
         end
         
         function save_no_background(obj)
+            global pipeline_data;
+            bgChannel = pipeline_data.bgChannel;
+            gausRad = pipeline_data.gausRad;
+            t = pipeline_data.t;
+            removeVal = pipeline_data.removeVal;
+            capBgChannel = pipeline_data.capBgChannel;
+            capEvalChannel = pipeline_data.capEvalChannel;
+            
             point_paths = keys(obj.pathsToPoints);
-            for i=1:numel(point_paths)
-                point = obj.pathsToPoints(point_paths{i});
-                point.save_no_background();
+            if numel(point_paths)>=1
+                [logpath, ~, ~] = fileparts(point_paths{1});
+                [logpath, ~, ~] = fileparts(logpath);
+                logpath = [logpath, filesep, 'no_background'];
+                mkdir(logpath)
+                timestring = strrep(datestr(datetime('now')), ':', char(720));
+                fid = fopen([logpath, filesep, '[', timestring, ']_background_removal.log'], 'wt');
+                fprintf(fid, 'background channel: %s\nbackground cap: %f\nevaluation cap: %f\ngaussian radius: %f\nthreshold: %f\nremove value: %f\n\n', bgChannel, capBgChannel, capEvalChannel, gausRad, t, removeVal);
+                
+                waitfig = waitbar(0, 'Removing background...');
+                for i=1:numel(point_paths)
+                    waitbar(i/numel(point_paths), waitfig, ['Removing background from ', strrep(obj.pathsToNames(point_paths{i}), '_', '\_')]);
+                    point = obj.pathsToPoints(point_paths{i});
+                    point.save_no_background();
+                    fprintf(fid, '%s\n', point_paths{i});
+                end
+                close(waitfig);
+                fclose(fid);
+                disp('Finished removing background.');
+                gong = load('gong.mat');
+                sound(gong.y, gong.Fs)
+            end
+        end
+        
+        function save_no_noise(obj)
+            point_paths = keys(obj.pathsToPoints);
+            if numel(point_paths)>=1
+                [logpath, ~, ~] = fileparts(point_paths{1});
+                [logpath, ~, ~] = fileparts(logpath);
+                logpath = [logpath, filesep, 'no_noise'];
+                mkdir(logpath)
+                timestring = strrep(datestr(datetime('now')), ':', char(720));
+                fid = fopen([logpath, filesep, '[', timestring, ']_noise_removal.log'], 'wt');
+                all_labels = obj.labels();
+                for i=1:numel(all_labels)
+                    label = all_labels{i};
+                    params = obj.getDenoiseParam(i);
+                    if params.status~=-1
+                        fprintf(fid, [label, ': {', newline]);
+                        fprintf(fid, [char(9), '  K-value: ', num2str(params.k_value), newline]);
+                        fprintf(fid, [char(9), 'threshold: ', num2str(params.threshold), ' }', newline]); 
+                    else % params.status==-1
+                        fprintf(fid, [label, ': { not denoised }', newline]);
+                    end
+                end
+                fprintf(fid, [newline, newline]);
+                waitfig = waitbar(0, 'Removing noise...');
+                for i=1:numel(point_paths)
+                    waitbar(i/numel(point_paths), waitfig, ['Removing noise from ', strrep(obj.pathsToNames(point_paths{i}), '_', '\_')]);
+                    point = obj.pathsToPoints(point_paths{i});
+                    point.save_no_noise();
+                    fprintf(fid, '%s\n', point_paths{i});
+                end
+                close(waitfig);
+                fclose(fid);
+                disp('Finished removing noise.');
+                gong = load('gong.mat');
+                sound(gong.y, gong.Fs)
+            end
+        end
+        
+        function save_no_aggregates(obj)
+            point_paths = keys(obj.pathsToPoints);
+            if numel(point_paths)>=1
+                [logpath, ~, ~] = fileparts(point_paths{1});
+                [logpath, ~, ~] = fileparts(logpath);
+                logpath = [logpath, filesep, 'no_aggregates'];
+                mkdir(logpath)
+                timestring = strrep(datestr(datetime('now')), ':', char(720));
+                fid = fopen([logpath, filesep, '[', timestring, ']_aggregate_removal.log'], 'wt');
+                all_labels = obj.labels();
+                for i=1:numel(all_labels)
+                    label = all_labels{i};
+                    params = obj.getAggRmParam(i);
+                    fprintf(fid, [label, ': {', newline]);
+                    fprintf(fid, [char(9), 'threshold: ', num2str(params.threshold), ' }', newline]); 
+                    fprintf(fid, [char(9), 'radius: ', num2str(params.radius), ' }', newline]);
+                end
+                fprintf(fid, [newline, newline]);
+                waitfig = waitbar(0, 'Removing aggregates...');
+                for i=1:numel(point_paths)
+                    waitbar(i/numel(point_paths), waitfig, ['Removing aggregates from ', strrep(obj.pathsToNames(point_paths{i}), '_', '\_')]);
+                    point = obj.pathsToPoints(point_paths{i});
+                    point.save_no_aggregates();
+                    fprintf(fid, '%s\n', point_paths{i});
+                end
+                close(waitfig);
+                fclose(fid);
+                disp('Finished removing aggregates.');
+                gong = load('gong.mat');
+                sound(gong.y, gong.Fs)
             end
         end
     end

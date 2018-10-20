@@ -127,18 +127,83 @@ classdef Point < handle
             mask = MIBI_get_mask(obj.counts(:,:,bgChannelInd),capBgChannel,t,gausRad,0,'');
             countsNoBg = gui_MibiRemoveBackgroundByMaskAllChannels(obj.counts,mask,removeVal);
             
-            path_parts = strsplit(obj.point_path, filesep);
+            [dir, pointname, ~] = fileparts(obj.point_path);
+            point_path = [dir, filesep, pointname];
+            path_parts = strsplit(point_path, filesep);
             path_parts{end-1} = 'no_background';
             new_path = strjoin(path_parts, filesep);
             if ~isempty(obj.path_ext)
-                new_path = [new_path, filesep, obj.path_ext];
+                disp(['Saving to ', new_path, filesep, obj.path_ext])
+                saveTIFF_folder(countsNoBg, obj.labels, obj.tags, [new_path, filesep, obj.path_ext]);
+                save([new_path, filesep, 'dataNoBg.mat'],'countsNoBg');
+            else
+                disp(['Saving to ', new_path])
+                saveTIFF_folder(countsNoBg, obj.labels, obj.tags, new_path);
+                save([new_path, filesep, 'dataNoBg.mat'],'countsNoBg');
             end
-            disp(['Saving to ', new_path])
-            saveTIFF_folder(obj.counts, obj.labels, obj.tags, new_path);
         end
         
         function save_no_noise(obj)
+            global pipeline_data;
+            IntNormDData = cell(size(obj.labels));
+            noiseT = zeros(size(obj.labels));
+            for i=1:numel(obj.labels)
+                try
+                    IntNormDData{i} = obj.int_norm_d(obj.labels{i});
+                catch
+                    IntNormDData{i} = [];
+                end
+                noiseT(i) = pipeline_data.points.getDenoiseParam(i).threshold;
+            end
+            countsNoNoise = gui_MibiFilterAllByNN(obj.counts,IntNormDData,noiseT);
             
+            [dir, pointname, ~] = fileparts(obj.point_path);
+            point_path = [dir, filesep, pointname];
+            path_parts = strsplit(point_path, filesep);
+            path_parts{end-1} = 'no_noise';
+            new_path = strjoin(path_parts, filesep);
+            
+            if ~isempty(obj.path_ext)
+                disp(['Saving to ', new_path, filesep, obj.path_ext])
+                saveTIFF_folder(countsNoNoise, obj.labels, obj.tags, [new_path, filesep, obj.path_ext]);
+                save([new_path, filesep, 'dataNoNoise.mat'],'countsNoNoise');
+            else
+                disp(['Saving to ', new_path])
+                saveTIFF_folder(countsNoNoise, obj.labels, obj.tags, new_path);
+                save([new_path, filesep, 'dataNoNoise.mat'],'countsNoNoise');
+            end
+        end
+        
+        function save_no_aggregates(obj)
+            global pipeline_data;
+            countsNoAgg = zeros(size(obj.counts));
+            for i=1:numel(obj.labels)
+                params = pipeline_data.points.getAggRmParam(i);
+                threshold = params.threshold;
+                radius = params.radius;
+                if radius==0
+                    gausFlag = 0;
+                else
+                    gausFlag = 1;
+                end
+                countsNoAgg(:,:,i) = gui_MibiFilterAggregates(obj.counts(:,:,i),radius,threshold,gausFlag);
+            end
+            
+            [dir, pointname, ~] = fileparts(obj.point_path);
+            point_path = [dir, filesep, pointname];
+            path_parts = strsplit(point_path, filesep);
+            path_parts{end-1} = 'no_aggregates';
+            new_path = strjoin(path_parts, filesep);
+            
+            if ~isempty(obj.path_ext)
+                disp(['Saving to ', new_path, filesep, obj.path_ext])
+                saveTIFF_folder(countsNoAgg, obj.labels, obj.tags, [new_path, filesep, obj.path_ext]);
+                save([new_path, filesep, 'dataNoAgg.mat'],'countsNoAgg');
+            else
+                disp(['Saving to ', new_path])
+                saveTIFF_folder(countsNoAgg, obj.labels, obj.tags, new_path);
+                save([new_path, filesep, 'dataNoAgg.mat'],'countsNoAgg');
+            end
         end
     end
 end

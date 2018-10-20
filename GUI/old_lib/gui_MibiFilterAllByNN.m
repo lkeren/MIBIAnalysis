@@ -8,7 +8,7 @@ function countsNoNoise = gui_MibiFilterAllByNN(countsAllSFiltCRSum,IntNormD,thre
 
 countsNoNoise=zeros(size(countsAllSFiltCRSum));
 for i=1:size(countsAllSFiltCRSum,3)
-    if threshVec(i)>0
+    if threshVec(i)>0 && ~isempty(IntNormD{i})
         countsNoNoise(:,:,i) = gui_MibiFilterImageByNNThreshold(countsAllSFiltCRSum(:,:,i),IntNormD{i},threshVec(i));
     else
         countsNoNoise(:,:,i) = countsAllSFiltCRSum(:,:,i);

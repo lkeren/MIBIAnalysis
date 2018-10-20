@@ -9,7 +9,7 @@ function varargout = denoising_gui(varargin)
     %      DENOISING_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
     %      function named CALLBACK in DENOISING_GUI.M with the given input arguments.
     %
-    %      DENOISING_GUI('Property','Value',...) creates a new DENOISING_GUI or raises the
+    %      DENOISING_GUI('Property','value',...) creates a new DENOISING_GUI or raises the
     %      existing singleton*.  Starting from the left, property value pairs are
     %      applied to the GUI before denoising_gui_OpeningFcn gets called.  An
     %      unrecognized property name or invalid value makes property application
@@ -54,14 +54,11 @@ function denoising_gui_OpeningFcn(hObject, eventdata, handles, varargin)
     global pipeline_data;
     json.startup;
     pipeline_data = struct();
-    pipeline_data.denoise_params = containers.Map;
-    % pipeline_data.IntNormDFutures = containers.Map;
     pipeline_data.points = PointManager();
     pipeline_data.labels = {};
     pipeline_data.figures = struct();
     pipeline_data.figures.tiffFigure = NaN;
     pipeline_data.figures.histFigure = NaN;
-    % pipeline_data.ignore = {'C', 'Ca', 'Na', '181', '197'};
     % Choose default command line output for denoising_gui
     handles.output = hObject;
     [rootpath, name, ext] = fileparts(mfilename('fullpath'));
@@ -100,11 +97,11 @@ function fix_handle(handle)
             set(handle, 'value', numel(get(handle, 'string')));
         end
         if isempty(get(handle, 'string'))
-            set(handle, 'String', '');
-            set(handle, 'Value', 1)
+            set(handle, 'string', '');
+            set(handle, 'value', 1)
         end
-        if ~isnumeric(get(handle, 'Value'))
-            set(handle, 'Value', 1)
+        if ~isnumeric(get(handle, 'value'))
+            set(handle, 'value', 1)
         end
     catch
         
@@ -129,7 +126,7 @@ function point_names = getPointNames(handles)
 
 function channel_params = getChannelParams(handles)
     global pipeline_data;
-    label_index = get(handles.channels_listbox,'Value');
+    label_index = get(handles.channels_listbox,'value');
     channel_params = pipeline_data.points.getDenoiseParam(label_index);
 
 function setThresholdParam(handles)
@@ -148,17 +145,11 @@ function setKValParam(handles)
             pipeline_data.points.setDenoiseParam(index, 'k_value', k_val);
         end
     end
-%     pipeline_data.points.setDenoisingParam
-%     temp = struct();
-%     temp.threshold = threshold;
-%     temp.k_val = k_val;
-%     temp.status = pipeline_data.denoise_params(channel).status;
-%     pipeline_data.denoise_params(channel) = temp;
     set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
     
 function plotDenoisingParams(handles)
     global pipeline_data;
-    label_index = get(handles.channels_listbox,'Value');
+    label_index = get(handles.channels_listbox,'value');
     point_name = getPointNames(handles);
     if numel(point_name)==1 && numel(label_index)==1
         point_name = point_name{1};
@@ -225,46 +216,6 @@ function set_gui_state(handles, state)
     drawnow
 % --- Executes on button press in add_point.
 
-
-function add_point_Callback(hObject, eventdata, handles)
-% hObject    handle to add_point (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    global pipeline_data;
-    pointdiles = uigetdiles(pipeline_data.defaultPath);
-    if ~isempty(pointdiles)
-        pipeline_data.points.add(pointdiles);
-        point_names = pipeline_data.points.getNames();
-        disp(pipeline_data.points.getPointText());
-        set(handles.points_listbox, 'string', pipeline_data.points.getPointText())
-        set(handles.points_listbox, 'max', numel(point_names));
-        denoise_text = pipeline_data.points.getDenoiseText();
-        set(handles.channels_listbox, 'string', denoise_text);
-        set(handles.channels_listbox, 'max', numel(denoise_text));
-        % pipeline_data.labels = pipeline_data.points.labels();
-    end
-
-% --- Executes on button press in remove_point.
-function remove_point_Callback(hObject, eventdata, handles)
-% hObject    handle to remove_point (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    global pipeline_data;
-    pointIndex = get(handles.points_listbox, 'Value');
-    pointList = pipeline_data.points.getNames();
-    % pointList = get(handles.points_listbox, 'String');
-    try
-        removedPoint = pointList{pointIndex};
-        if ~isempty(removedPoint)
-            pipeline_data.points.remove('name', removedPoint);
-            set(handles.points_listbox, 'String', pipeline_data.points.getNames());
-            set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
-        end
-        fix_menus_and_lists(handles);
-    catch
-    end
-
-    
 function run_knn(handles)
     global pipeline_data;
     point_names = pipeline_data.points.getSelectedPointNames();
@@ -300,22 +251,77 @@ function run_knn(handles)
     set(handles.points_listbox, 'string', pipeline_data.points.getPointText());
     set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
 
+function points_listbox_keypressfcn(hObject, eventdata, handles)
+    global pipeline_data;
+    if strcmp(eventdata.Key, 'return')
+        point_names = getPointNames(handles{2});
+        % point_names
+        if numel(point_names)>1 || true
+            for i=1:numel(point_names)
+                pipeline_data.points.togglePointStatus(point_names{i});
+            end
+            set(handles{2}.points_listbox, 'string', pipeline_data.points.getPointText());
+        end
+    end
+    
+function channels_listbox_keypressfcn(hObject, eventdata, handles)
+    global pipeline_data;
+    if strcmp(eventdata.Key, 'return')
+        channel_indices = get(handles{2}.channels_listbox,'value');
+        if numel(channel_indices)>1 || true
+            for i=1:numel(channel_indices)
+                pipeline_data.points.setDenoiseParam(channel_indices(i), 'status');
+            end
+        end
+        set(handles{2}.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
+    elseif strcmp(eventdata.Key, 'backspace')
+        channel_indices = get(handles{2}.channels_listbox,'value');
+        if numel(channel_indices)>1 || true
+            for i=1:numel(channel_indices)
+                pipeline_data.points.setDenoiseParam(channel_indices(i), 'status', -1);
+            end
+        end
+        set(handles{2}.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
+    end
+
+function add_point_Callback(hObject, eventdata, handles)
+    global pipeline_data;
+    pointdiles = uigetdiles(pipeline_data.defaultPath);
+    if ~isempty(pointdiles)
+        [pipeline_data.defaultPath, ~, ~] = fileparts(pointdiles{1});
+        pipeline_data.points.add(pointdiles);
+        point_names = pipeline_data.points.getNames();
+        set(handles.points_listbox, 'string', pipeline_data.points.getPointText())
+        set(handles.points_listbox, 'max', numel(point_names));
+        denoise_text = pipeline_data.points.getDenoiseText();
+        set(handles.channels_listbox, 'string', denoise_text);
+        set(handles.channels_listbox, 'max', numel(denoise_text));
+        % pipeline_data.labels = pipeline_data.points.labels();
+    end
+
+% --- Executes on button press in remove_point.
+function remove_point_Callback(hObject, eventdata, handles)
+    global pipeline_data;
+    pointIndex = get(handles.points_listbox, 'value');
+    pointList = pipeline_data.points.getNames();
+    % pointList = get(handles.points_listbox, 'string');
+    try
+        removedPoint = pointList{pointIndex};
+        if ~isempty(removedPoint)
+            pipeline_data.points.remove('name', removedPoint);
+            set(handles.points_listbox, 'string', pipeline_data.points.getNames());
+            set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
+        end
+        fix_menus_and_lists(handles);
+    catch
+    end
+
 % --- Executes on button press in run_knn.
 function run_knn_Callback(hObject, eventdata, handles)
-% hObject    handle to run_knn (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     run_knn(handles);
-
-        
 
 % --- Executes on selection change in points_listbox.
 function points_listbox_Callback(hObject, eventdata, handles)
-% hObject    handle to points_listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Hints: contents = cellstr(get(hObject,'String')) returns points_listbox contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from points_listbox
     try
         global pipeline_data;
         if strcmp(get(gcf,'selectiontype'), 'open')
@@ -353,15 +359,9 @@ function points_listbox_Callback(hObject, eventdata, handles)
 
 % --- Executes on slider movement.
 function threshold_slider_Callback(hObject, eventdata, handles)
-% hObject    handle to threshold_slider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
     try
-        val = get(hObject,'Value');
-        set(handles.threshold_edit, 'String', num2str(val));
+        val = get(hObject,'value');
+        set(handles.threshold_edit, 'string', num2str(val));
         setThresholdParam(handles);
         plotDenoisingParams(handles);
     catch
@@ -369,22 +369,16 @@ function threshold_slider_Callback(hObject, eventdata, handles)
     end
 
 function threshold_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to threshold_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of threshold_edit as text
-%        str2double(get(hObject,'String')) returns contents of threshold_edit as a double
     try
-        val = str2double(get(hObject,'String'));
-        if val<get(handles.threshold_slider, 'Min')
-            set(handles.threshold_slider, 'Min', val);
-        elseif val>get(handles.threshold_slider, 'Max')
-            set(handles.threshold_slider, 'Max', val);
+        val = str2double(get(hObject,'string'));
+        if val<get(handles.threshold_slider, 'min')
+            set(handles.threshold_slider, 'min', val);
+        elseif val>get(handles.threshold_slider, 'max')
+            set(handles.threshold_slider, 'max', val);
         else
             
         end
-        set(handles.threshold_slider, 'Value', val);
+        set(handles.threshold_slider, 'value', val);
         setThresholdParam(handles);
         plotDenoisingParams(handles);
     catch
@@ -392,29 +386,20 @@ function threshold_edit_Callback(hObject, eventdata, handles)
     end
 
 function k_val_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to k_val_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     setKValParam(handles);
 
 % --- Executes on button press in reset_k_val.
 function reset_k_val_Callback(hObject, eventdata, handles)
-% hObject    handle to reset_k_val (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     try
         channel_params = getChannelParams(handles);
         k_val = channel_params{3};
-        set(handles.k_val_edit, 'String', k_val);
+        set(handles.k_val_edit, 'string', k_val);
     catch
         
     end
 
 % --- Executes on button press in recalculate_k_val.
 function recalculate_k_val_Callback(hObject, eventdata, handles)
-% hObject    handle to recalculate_k_val (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     try
         global pipeline_data;
         set(handles.figure1, 'pointer', 'watch')
@@ -439,15 +424,9 @@ function recalculate_k_val_Callback(hObject, eventdata, handles)
 
 % --- Executes on selection change in channels_listbox.
 function channels_listbox_Callback(hObject, eventdata, handles)
-% hObject    handle to channels_listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns channels_listbox contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from channels_listbox
     try
         global pipeline_data;
-        label_index = get(handles.channels_listbox,'Value');
+        label_index = get(handles.channels_listbox,'value');
         if numel(label_index)>1 && false
             if strcmp(get(gcf,'selectiontype'),'open')
                 for i=1:numel(label_index)
@@ -461,24 +440,20 @@ function channels_listbox_Callback(hObject, eventdata, handles)
             k_val = channel_params.k_value;
             threshold = channel_params.threshold;
 
-            % label = channel_params{1};
-            % temp = pipeline_data.denoise_params(label);
             if strcmp(get(gcf,'selectiontype'),'open')
                 pipeline_data.points.setDenoiseParam(label_index, 'status');
-                % temp.status = 1-temp.status;
-                % pipeline_data.denoise_params(label) = temp;
                 set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
             end
-            set(handles.threshold_edit, 'String', threshold);
-            set(handles.k_val_edit, 'String', k_val);
-            if threshold<get(handles.threshold_slider, 'Min')
-                set(handles.threshold_slider, 'Min', threshold);
-            elseif threshold>get(handles.threshold_slider, 'Max')
-                set(handles.threshold_slider, 'Max', threshold);
+            set(handles.threshold_edit, 'string', threshold);
+            set(handles.k_val_edit, 'string', k_val);
+            if threshold<get(handles.threshold_slider, 'min')
+                set(handles.threshold_slider, 'min', threshold);
+            elseif threshold>get(handles.threshold_slider, 'max')
+                set(handles.threshold_slider, 'max', threshold);
             else
 
             end
-            set(handles.threshold_slider, 'Value', threshold);
+            set(handles.threshold_slider, 'value', threshold);
             plotDenoisingParams(handles);
             fix_menus_and_lists(handles);
         else
@@ -489,15 +464,12 @@ function channels_listbox_Callback(hObject, eventdata, handles)
     
 % --- Executes on button press in threshold_minmax_button.
 function threshold_minmax_button_Callback(hObject, eventdata, handles)
-% hObject    handle to threshold_minmax_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    defaults = {num2str(get(handles.threshold_slider, 'Min')), num2str(get(handles.threshold_slider, 'Max'))};
+    defaults = {num2str(get(handles.threshold_slider, 'min')), num2str(get(handles.threshold_slider, 'max'))};
     vals = inputdlg({'Threshold minimum', 'Threshold maximum'}, 'Threshold range', 1, defaults);
     try
         vals = str2double(vals);
         if vals(2)>vals(1)
-            value = get(handles.threshold_slider, 'Value');
+            value = get(handles.threshold_slider, 'value');
             if value<vals(1) % value less than minimum
                 value = vals(1);
             elseif value>vals(2) % value greater than maximum
@@ -505,10 +477,10 @@ function threshold_minmax_button_Callback(hObject, eventdata, handles)
             else
                 % value is fine
             end
-            set(handles.threshold_slider, 'Min', vals(1));
-            set(handles.threshold_slider, 'Max', vals(2));
-            set(handles.threshold_slider, 'Value', value);
-            set(handles.threshold_edit, 'String', value);
+            set(handles.threshold_slider, 'min', vals(1));
+            set(handles.threshold_slider, 'max', vals(2));
+            set(handles.threshold_slider, 'value', value);
+            set(handles.threshold_edit, 'string', value);
             setThresholdParam(handles);
             plotDenoisingParams(handles);
         else
@@ -518,19 +490,15 @@ function threshold_minmax_button_Callback(hObject, eventdata, handles)
         % do nothing
     end
 
-
 % --- Executes on button press in load_run_button.
 function load_run_button_Callback(hObject, eventdata, handles)
-% hObject    handle to load_run_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     [file,path] = uigetfile('*.mat');
     global pipeline_data;
     try
         pipeline_data = load([path, filesep, file]);
         try
             pipeline_data = pipeline_data.pipeline_data;
-            set(handles.points_listbox, 'String', pipeline_data.corePath);
+            set(handles.points_listbox, 'string', pipeline_data.corePath);
             generateDenoiseParamText(handles);
         catch
             gui_warning('Invalid file');
@@ -541,14 +509,11 @@ function load_run_button_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in save_run_button.
 function save_run_button_Callback(hObject, eventdata, handles)
-% hObject    handle to save_run_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     [file,path] = uiputfile('*.mat');
     global pipeline_data;
     try
-        pipeline_data.tiffFigure = NaN;
-        pipeline_data.histFigure = NaN;
+        pipeline_data.figures.tiffFigure = NaN;
+        pipeline_data.figures.histFigure = NaN;
         save([path, filesep, file], 'pipeline_data')
     catch
         
@@ -556,9 +521,6 @@ function save_run_button_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in denoise_button.
 function denoise_button_Callback(hObject, eventdata, handles)
-% hObject    handle to denoise_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
     global pipeline_data;
     % first we have to finish running the knn calculation
     point_names = pipeline_data.points.getNames();
@@ -574,150 +536,46 @@ function denoise_button_Callback(hObject, eventdata, handles)
     set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
     
     run_knn(handles);
-    
+    set_gui_state(handles, 'off');
     set(handles.points_listbox, 'string', pipeline_data.points.getPointText());
     set(handles.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
-%     
-%     cleanDataPath = uigetdir(); % this is also where it will place the log
-%     if cleanDataPath~=0
-%         set(handles.figure1, 'pointer', 'watch');
-%         drawnow
-%         pipeline_data.noiseT = zeros(size(pipeline_data.labels));
-%         pipeline_data.IntNormDData = containers.Map;
-%         for lab=1:numel(pipeline_data.noiseT)
-%             pipeline_data.noiseT(lab) = pipeline_data.denoise_params(pipeline_data.labels{lab}).threshold;
-%         end
-%         for poi=1:numel(pipeline_data.corePath)
-%             IntNormDCell = cell(size(pipeline_data.labels));
-%             for lab=1:numel(pipeline_data.labels)
-%                 key = [pipeline_data.corePath{poi}, '_', pipeline_data.labels{lab}];
-%                 % disp(key);
-%                 IntNormDCell{lab} = pipeline_data.IntNormD(key);
-%             end
-%             pipeline_data.IntNormDData(pipeline_data.corePath{poi}) = IntNormDCell;
-%         end
-% 
-% %         cleanDataPath = [cleanDataPath, filesep, 'cleanData'];
-% %         mkdir(cleanDataPath);
-%         waitfig = waitbar(0, 'Denoising points...');
-%         for i=1:numel(pipeline_data.corePath)
-%             path = pipeline_data.corePath{i};
-%             [savePath, name, ~] = fileparts(path);
-%             [savePath, ~, ~] = fileparts(savePath);
-%             savePath = [savePath, filesep, 'NoNoiseData'];
-%             countsNoNoise = gui_MibiFilterAllByNN(pipeline_data.dataNoBg(path).countsAllSFiltCRSum,pipeline_data.IntNormDData(path),pipeline_data.noiseT);
-%             % mkdir([cleanDataPath,'/Point',num2str(i)]);
-%             gui_MibiSaveTifs ([savePath,filesep,name,'_TIFsNoNoise',filesep], countsNoNoise, pipeline_data.labels)
-%             save([savePath,filesep,name,'_dataDeNoiseCohort.mat'],'countsNoNoise');
-%             waitbar(i/numel(pipeline_data.corePath), waitfig, 'Denoising points...');
-%     %         close all;
-%         end
-%         close(waitfig);
-%         fid = fopen([cleanDataPath, filesep, '[', datestr(datetime('now')), ']_denoising.log'], 'wt');
-%         for i=1:numel(pipeline_data.labels)
-%             label = pipeline_data.labels{i};
-%             params = pipeline_data.denoise_params(label);
-%             fprintf(fid, [label, ': {', newline]);
-%             fprintf(fid, [char(9), '  K-value: ', num2str(params.k_val), newline]);
-%             fprintf(fid, [char(9), 'threshold: ', num2str(params.threshold), ' }', newline]); 
-%         end
-%         fclose(fid);
-%         set(handles.figure1, 'pointer', 'arrow');
-%         disp('Done denoising');
-%         gong = load('gong.mat');
-%         sound(gong.y, gong.Fs)
-%     end
-
-
-function points_listbox_keypressfcn(hObject, eventdata, handles)
-    global pipeline_data;
-    if strcmp(eventdata.Key, 'return')
-        point_names = getPointNames(handles{2});
-        % point_names
-        if numel(point_names)>1 || true
-            for i=1:numel(point_names)
-                pipeline_data.points.togglePointStatus(point_names{i});
-            end
-            set(handles{2}.points_listbox, 'string', pipeline_data.points.getPointText());
-        end
-    end
     
-function channels_listbox_keypressfcn(hObject, eventdata, handles)
-    global pipeline_data;
-    if strcmp(eventdata.Key, 'return')
-        channel_indices = get(handles{2}.channels_listbox,'value');
-        if numel(channel_indices)>1 || true
-            for i=1:numel(channel_indices)
-                pipeline_data.points.setDenoiseParam(channel_indices(i), 'status');
-            end
-        end
-        set(handles{2}.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
-    elseif strcmp(eventdata.Key, 'backspace')
-        channel_indices = get(handles{2}.channels_listbox,'value');
-        if numel(channel_indices)>1 || true
-            for i=1:numel(channel_indices)
-                pipeline_data.points.setDenoiseParam(channel_indices(i), 'status', -1);
-            end
-        end
-        set(handles{2}.channels_listbox, 'string', pipeline_data.points.getDenoiseText());
-    end
+    % now we have to actually save the results
+    pipeline_data.points.save_no_noise();
+    set_gui_state(handles, 'on');
+    msg = {'+----------------------------------------------+',...
+           '|                                              |',...
+           '|              Done removing noise             |',...
+           '|                                              |',...
+           '+----------------------------------------------+'};
+    m = gui_msgbox(msg);
 
-    
 % --- Executes during object creation, after setting all properties.
 function points_listbox_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to points_listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
 
 % --- Executes during object creation, after setting all properties.
 function threshold_slider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to threshold_slider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
 % --- Executes during object creation, after setting all properties.
 function threshold_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to threshold_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
 % --- Executes during object creation, after setting all properties.
 function k_val_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to k_val_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
 % --- Executes during object creation, after setting all properties.
 function channels_listbox_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to channels_listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end

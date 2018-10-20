@@ -21,7 +21,7 @@ function [] = MIBIloadAndDisplayBackgroundChannel(reuseFigure)
             existAndValid = 0;
         end
         if ~existAndValid
-            pipeline_data.backgroundChannelFigure = figure(); plotbrowser on
+            pipeline_data.backgroundChannelFigure = sfigure(); plotbrowser on
         end
         gui_MibiPlotDataAndCap(countsAllSFiltCRSum(:,:,bgChannelInd),capBgChannel,['Background channel - ',bgChannel,newline,newline,point_name], 'Background', pipeline_data.backgroundChannelFigure); plotbrowser on;
     end
